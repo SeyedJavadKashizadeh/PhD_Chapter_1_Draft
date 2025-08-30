@@ -1,0 +1,1469 @@
+% $Id: jfsample.tex,v 19:a118fd22993e 2013/05/24 04:57:55 stanton $
+\documentclass[11pt]{article}
+
+% DEFAULT PACKAGE SETUP
+
+\usepackage{setspace,graphicx,subcaption,epstopdf,amsmath,amsfonts,amssymb,amsthm,versionPO}
+\usepackage{marginnote,datetime,enumitem,rotating,fancyvrb}
+% Some packages for tables (Javad)
+\usepackage{booktabs, longtable,pdflscape}
+% caption paragraph justification
+\usepackage{ragged2e}
+
+
+%  for FloatBarrier
+\usepackage{placeins}
+\usepackage{hyperref,float}
+\usepackage[maxnames=3, minnames=1]{natbib}
+
+\usdate
+
+% These next lines allow including or excluding different versions of text
+% using versionPO.sty
+
+\excludeversion{notes}		% Include notes?
+\includeversion{links}          % Turn hyperlinks on?
+
+% Turn off hyperlinking if links is excluded
+\iflinks{%
+  \hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue,
+    pdfborder={0 0 0}
+  }
+}{\hypersetup{draft=true}}
+
+% Notes options
+\ifnotes{%
+\usepackage[margin=1in,paperwidth=10in,right=2.5in]{geometry}%
+\usepackage[textwidth=1.4in,shadow,colorinlistoftodos]{todonotes}%
+}{%
+\usepackage[margin=1in]{geometry}%
+% \usepackage[disable]{todonotes}%
+}
+
+% Allow todonotes inside footnotes without blowing up LaTeX
+% Next command works but now notes can overlap. Instead, we'll define 
+% a special footnote note command that performs this redefinition.
+%\renewcommand{\marginpar}{\marginnote}%
+
+% Save original definition of \marginpar
+\let\oldmarginpar\marginpar
+
+% Workaround for todonotes problem with natbib (To Do list title comes out wrong)
+\makeatletter\let\chapter\@undefined\makeatother % Undefine \chapter for todonotes
+
+% Define note commands
+\newcommand{\smalltodo}[2][] {\todo[caption={#2}, size=\scriptsize, fancyline, #1] {\begin{spacing}{.5}#2\end{spacing}}}
+\newcommand{\rhs}[2][]{\smalltodo[color=green!30,#1]{{\bf RS:} #2}}
+\newcommand{\rhsnolist}[2][]{\smalltodo[nolist,color=green!30,#1]{{\bf RS:} #2}}
+\newcommand{\rhsfn}[2][]{%  To be used in footnotes (and in floats)
+\renewcommand{\marginpar}{\marginnote}%
+\smalltodo[color=green!30,#1]{{\bf RS:} #2}%
+\renewcommand{\marginpar}{\oldmarginpar}}
+%\newcommand{\textnote}[1]{\ifnotes{{\noindent\color{red}#1}}{}}
+\newcommand{\textnote}[1]{\ifnotes{{\colorbox{yellow}{{\color{red}#1}}}}{}}
+
+% Command to start a new page, starting on odd-numbered page if twoside option 
+% is selected above
+\newcommand{\clearRHS}{\clearpage\thispagestyle{empty}\cleardoublepage\thispagestyle{plain}}
+
+% mke input expandable 
+\newcommand*\ExpandableInput[1]{\@@input#1 }
+
+
+% Number paragraphs and subparagraphs and include them in TOC
+\setcounter{tocdepth}{2}
+
+% JF-specific includes:
+
+\usepackage{indentfirst} % Indent first sentence of a new section.
+\usepackage{endnotes}    % Use endnotes instead of footnotes
+\usepackage{jf}          % JF-specific formatting of sections, etc.
+\usepackage[labelfont=bf,labelsep=period]{caption}   % Format figure captions
+\captionsetup[table]{labelsep=none}
+\usepackage{lettrine} % First Letter Large
+
+% Define theorem-like commands and a few random function names.
+\newtheorem{condition}{CONDITION}
+\newtheorem{corollary}{COROLLARY}
+\newtheorem{proposition}{PROPOSITION}
+\newtheorem{obs}{OBSERVATION}
+\newcommand{\argmax}{\mathop{\rm arg\,max}}
+\newcommand{\sign}{\mathop{\rm sign}}
+\newcommand{\defeq}{\stackrel{\rm def}{=}}
+
+
+% Required packages
+\usepackage{booktabs}
+\usepackage{threeparttablex}
+\usepackage{siunitx}
+\usepackage{caption}
+
+% Symbol handling for esttab output
+\newcommand{\sym}[1]{\rlap{#1}}
+
+\sisetup{
+    detect-mode,
+    group-digits = false,
+    input-symbols = ( ) [ ] - +,
+    table-align-text-post = false,
+    input-signs = ,
+}
+
+\def\yyy{%
+  \bgroup\uccode`\~\expandafter`\string-% 
+  \uppercase{\egroup\edef~{\noexpand\text{\llap{\textendash}\relax}}}
+  \mathcode\expandafter`\string-"8000 }
+\def\xxxl#1{%
+  \bgroup\uccode`\~\expandafter`\string#1%
+  \uppercase{\egroup\edef~{\noexpand\text{\noexpand\llap{\string#1}}}}%
+  \mathcode\expandafter`\string#1"8000 }
+\def\xxxr#1{%
+  \bgroup\uccode`\~\expandafter`\string#1%
+  \uppercase{\egroup\edef~{\noexpand\text{\noexpand\rlap{\string#1}}}}%
+  \mathcode\expandafter`\string#1"8000 }
+\def\textsymbols{\xxxl[\xxxr]\xxxl(\xxxr)\yyy}
+
+% Table input macros
+\let\estinput=\input
+
+\newcommand{\estauto}[3]{
+  \vspace{.75ex}{
+    \textsymbols
+    \begin{tabular}{l*{#2}{#3}}
+      \toprule
+      \estinput{#1}
+      \bottomrule
+      \addlinespace[.75ex]
+    \end{tabular}
+  }
+}
+
+% Notes
+\newcommand{\Figtext}[1]{%
+  \begin{tablenotes}[para,flushleft]
+  \hspace{6pt}\hangindent=1.75em #1
+  \end{tablenotes}
+}
+\newcommand{\Fignote}[1]{\Figtext{\emph{Note:~}~#1}}
+\newcommand{\Figsource}[1]{\Figtext{\emph{Source:~}~#1}}
+\newcommand{\Starnote}{\Figtext{* p < 0.1, ** p < 0.05, *** p < 0.01. Standard errors in parentheses.}}
+
+% \usepackage{pdfcomment}
+% \newcommand{\Javad}[1]{\pdfcomment[color=green]{#1}}
+% \newcommand{\Advisor}[1]{\pdfcomment[color=red,icon=note]{#1}}
+
+\usepackage{todonotes}
+\newcommand{\Javad}[1]{\todo[inline,linecolor=red, backgroundcolor=blue!10!white, bordercolor=red, size=\tiny]{#1}}
+\newcommand{\andreas}[1]{\todo[inline,linecolor=blue, backgroundcolor=yellow!20!white, bordercolor=blue, size=\tiny]{#1}}
+
+\begin{document}
+
+\setlist{noitemsep}  % Reduce space between list items (itemize, enumerate, etc.)
+\onehalfspacing      % Use 1.5 spacing
+% Use endnotes instead of footnotes - redefine \footnote command
+% \renewcommand{\footnote}{\endnote}  % Endnotes instead of footnotes
+
+\author{Seyed Javad Kashizadeh\thanks{\rm PhD Candidate at EPFL and Swiss Finance Institute. Email: Javad.Kashizdeh@epfl.ch. I thank Andreas Fuster (my advisor), R\"udiger Fahlenbrach, Francesco Celentano, Luise Eisfeld, Johannes Stroebel, and Theresa Kuchler
+.}}
+
+\title{\Large \bf The Price of Pause: Mortgage Forbearance and Refinancing}
+
+\date{}              % No date for final submission
+
+% Create title page with no page number
+
+\maketitle
+\thispagestyle{empty}
+
+\bigskip
+
+\centerline{\bf ABSTRACT}
+
+\begin{doublespace}  % Double-space the abstract and don't indent it
+
+
+  \noindent  I show that the mortgage forbearance during COVID-19 imposed an annual household saving loss of one billion dollar by preventing households from refinancing into lower-rate loans.
+  Households who entered forbearance refinanced by 3.2 percentage points lower rate for GSE loans and 5.2 percentage points for FHA loans. \andreas{This previous sentence is not good English -- please use proofreading tools / AI to improve writing}
+  The negative effect is robust to a variety of controls and assumptions about self-selection bias. Adjusting for baseline refinancing hazard differences, forbearance negative effect is more for low income and minorities. \Javad{But only in the GSE sample!}  \andreas{Again, sentence not well written}  
+  
+\end{doublespace}
+
+\medskip
+
+\noindent JEL classification: D12, D63, G21, G50
+
+\clearpage
+
+% \Javad{The major challenge: At the end, it is challenging to identify the accurate effect of forbearance on borrowers' refinancing. Independent of how much accurate you do the matching, forbearance borrowers may be unable to refinance SIMPLY BECAUSE OF INCOME SHOCK. I can follow Gerardi et al (2023) and capture the changes in credit score as a proxy for income shock. However, credit score is changed only when the income shock affects debt payments. Also, the proxy for payment during forbearance is a dummy about whether the payment is suppressed or not. It is quit possible that a borrower missed two payments but is still current in the records. EVEN if you could exactly identify borrowers who enter forbearance AND paid all their monthly interest and principal, you can not compare their refinancing ability with the control group. It is possible that these borrowers could handle the monthly payment, but were unable to pay the refinancing cost for a lot of reasons. Also, I explained at the end of INSTITUTIONAL SETTING that for GSE borrowers, they could enter forbearance AND REFINANCE WHILE IN PROGRAM as long as they paid all their monthly obligations. In FHA sample, they could refinance right after exiting forbearance (no 3 payment requirements). I then show in \hyperref[fig:event_study_payment]{Figure~\ref*{fig:event_study_payment}} (no explanation right now in the body of paper about this figure) that almost all refinancing heterogeneity comes from forborne borrowers who MISSED SOME PAYMENTS during forbearance. Clearly, the refinancing ability of these borrowers is even worse.  Another channel to be addressed is the positive refinancing effect through preventing foreclosure, introduced by Capponi et al (2022). I am working on it.  In conclusion, what I am showing is an upper bound of the causal forbearance effect. However, the convincing finding is a lower bound of the treatment effect. I provide some lower bounds in \hyperref[tab:aggregate_saving]{Table~\ref{tab:aggregate_saving}}. However, I am not sure these are convincing enough.}
+
+
+\noindent The onset of COVID-19 imposed a sharp economic shock on U.S. households, triggering a surge in unemployment that, in April 2020, reached the highest level recorded since the Great Depression. In response, Congress enacted the Coronavirus Aid, Relief, and Economic Security (CARES) Act, which introduced a range of emergency measures to support struggling households. A central provision of the legislation was an expansive mortgage forbearance program that allowed borrowers with federally backed mortgages to temporarily suspend payments without penalties, late fees, or damage to their credit, relieving financial burden during a period of severe economic uncertainty.
+
+At the same time, the Federal Reserve launched an extensive quantitative easing (QE) program, expanding its balance sheet through large-scale purchases of U.S. Treasuries and agency mortgage-backed securities. These interventions compressed long-term yields and mortgage-backed security spreads, which in turn drove mortgage rates to historic lows. As a result, the U.S. housing market experienced a massive refinancing wave, with millions of households lowering their monthly payments and locking in cheaper long-term borrowing costs (see, among others, \citet{gerardi2021racial}, \citet{fuster2021resilient}, and \citet{agarwal2024refinancing}). 
+
+Forbearance policy, while helping households avert widespread debt distress, came with a significant downside: borrowers in forbearance were barred from refinancing. For Government-Sponsored Enterprise (GSE) and Federal Housing Administration (FHA) loans, the restriction prevented borrowers from refinancing while in forbearance and required them to make several consecutive payments after exiting the program before regaining eligibility. In this paper, I show that the refinancing ban, coinciding with the historically low interest rate environment, limited many forborne households to take advantage of cheaper credit and reduced the potential savings they could have realized through refinancing between the beginning of 2020 and the end of 2021. To estimate this effect, I implement a staggered event study analysis with heterogeneous treatment effects, as proposed by \citet{sunAbraham2021}. I find that forborne borrowers experience a negative quarterly refinancing hazard of approximately 3.16 and 5.18 percentage points in the GSE and FHA samples, respectively. These reductions correspond to nearly 32.4\% and 58.2\% of the average quarterly refinancing rate observed in the respective control groups. 
+
+For the bulk of my analyses, I rely on the National Survey of Mortgage Originations (NSMO), a rich panel dataset that captures borrowers’ experiences obtaining a mortgage, their perceptions of the mortgage market, and their expectations about future conditions. The NSMO dataset also provides quarterly updates on credit scores, loan-to-value ratios, forbearance status, and mortgage payment histories. These features allow me to track borrowers’ financial solvency before and after the COVID-19 crisis, approximate dynamic refinancing eligibility, and avoid the measurement errors that arise when forbearance is inferred indirectly through loan modifications in other public datasets.
+
+% One of the central identification concerns is non-random selection into the forbearance program. Those who enter forbearance are financially worse off, which may limit their ability to refinance, independent of program participation. In addition, there are significant demographic disparities in the sample: Black and Hispanic households make up 27\% of the forbearance group, compared to just 14\% of the non-forborne group. To address the self-selection bias, I first construct a matched sample of forbearance and non-forborne borrowers using 1:1 nearest-neighbor matching based on pre-pandemic characteristics. Implementing the event study on the matched sample, I find that the refinancing gap for borrowers who entered forbearance shrinks to 3.07 percentage points in the GSE sample. The reduction is more pronounced for the FHA sample, where matching lowers the gap by 28\%, to 3.72 percentage points. This indicates that a relatively larger share of the FHA refinancing gap is attributable to observable pre-pandemic characteristics, lending support to the matching ability to limit extrapolation in estimation. \Javad{I am not sure if the last sentence is convincing enough. I have already controlled for a lot of observables in LPM and the result is robust. Maybe focusing on the role of matching in removing extrapolation is a more natural way to finish this paragraph.} 
+% \andreas{I think the idea of the last sentence is fine (although I'm not sure what ``matching ability to limit extrapolation'' means), but given that matching reduces the gaps, I think you may want to use these numbers (3.1 and 3.7 percentage points) as your ``headline numbers'', rather than 3.2 and 5.2 pp from above?}
+
+I assess robustness of my results to the violation of the conditional independence assumption via the sensitivity analysis proposed by \citet{oster2019}. The method  measures the degree of unobserved confounding necessary to overturn the estimated treatment effect. The approach introduces an adjusted treatment, assuming that unobservables proportionally increase $R^2$ of the regression relative to the specification with only observables. For my analysis I consider two benchmarks, a stringent case in which unobservables are assumed to double $R^2$ and a more commonly used case in which they increase $R^2$ by a factor of 1.3.\footnote{~Another important parameter in \citet{oster2019} is the relative importance of selection on unobserved versus observed variables, which is typically set to one. Assuming  \(R^2\) factor of 2 (1.3) and $\delta$ of 1, \citet{oster2019} shows that in about 73\% (43\%) of published results in a sample of leading economics journals, adjusting for unobservables is sufficient to reverse the sign of the treatment effect.} Applying the stringent benchmark to my setting, I find that the estimated negative effect of entering forbearance on refinancing ability is reduced by only about 20\% in the GSE sample and 50\% in the FHA sample. Under the more commonly used benchmark with an $R^2$ factor of 1.3, the reductions are much smaller, at 7\% and 14\%, respectively. 
+% \andreas{There is a bit too much detail here. I moved one sentence in particular to a footnote, but this could be condensed further}
+
+Refinancing heterogeneity caused by forbearance resulted in an unrealized mortgage savings during the pandemic. To quantify the monetary consequences of the forgone wealth redistribution, I conduct a counterfactual analysis of interest payments for borrowers in forbearance. The simulation results show that by the end of 2021, the refinancing gap amounted to an average interest rate differential of about 22 and 19 basis points in the GSE and FHA markets, respectively, which translates into roughly \$840 million and \$730 million in total annual forgone savings.\footnote{~Other federally backed mortgages—such as VA-guaranteed and FSA/RHS-insured loans—were also eligible for forbearance under the CARES Act. In addition, some non-agency (e.g., private-label) loans were covered by voluntary servicer participation or proprietary forbearance programs. To the extent that similar refinancing restrictions applied to these other mortgages, my estimates likely understate the total amount of forgone household savings during the pandemic.} Most of this gap reflects the external margin, that is, forborne borrowers who never refinanced until the end of 2021.  To address the potential selection bias, I again apply the sensitivity framework of \citet{oster2019}. Even the stringent assumption about the conditional dependence reduces the aggregate saving loss to \$676 million and \$365 million, respectively.\footnote{~Under the commonly used benchmark of $R^2_{\max} = 1.3\tilde{R}$ with $\delta=1$, the implied forgone savings remain large at \$786 million for GSE loans and \$628 million for FHA loans.} 
+
+
+The negative refinancing impact of forbearance also varied systematically across income and racial groups. In both GSE and FHA sample, the magnitude of negative effect differed sharply for lower and upper median income borrowers. The estimation shows that for GSE loans, higher-income borrowers faced an average refinancing reduction of 3.34 percentage points after entering forbearance, compared with 3.04 percentage points among lower-income borrowers. The disparity is much larger in the FHA market, where the higher-income group experienced a negative effect of 7.67 percentage points versus 4.29 percentage points for the lower-income group. Decomposition of the income gap in the GSE sample shows that the 0.30 percentage point high–low gap decomposes into 0.98 percentage points of baseline differences and a negative policy component of –0.68 percentage points, implying that low-income GSE borrowers actually suffered a relatively larger policy-induced refinancing penalty. In the FHA sample, the 3.38 percentage point difference is primarily baseline-driven: 2.51 percentage points (74\%) reflect higher refinancing propensities among high-income non-forborne borrowers, while the remaining 0.87 percentage points (26\%) arise from a stronger negative policy effect of forbearance on high-income borrowers.
+
+
+A similar event study estimate shows that minority borrowers experienced refinancing reductions of 3.93 percentage points in the GSE market and 4.11 percentage points in the FHA market after entering forbearance. The corresponding effects for White Non-Hispanic borrowers were 3.31 and 6.17 percentage points, respectively, implying a White–minority refinancing gap of –0.62 percentage points in GSE loans and 2.06 percentage points in FHA loans. In the GSE market, the refinancing gap of $-0.62$ percentage points decomposes into a 0.39 point baseline advantage for White borrowers and a $-1.01$ point policy effect, showing that, conditional on similar baseline refinancing propensities, minority GSE borrowers were more strongly constrained by the forbearance restrictions, effectively reversing the baseline gap. In the FHA market, 1.42 percentage points (about 69\%) reflect higher refinancing propensities among White non-forborne borrowers, while the remaining 0.64 percentage points (31\%) capture a stronger policy effect of forbearance on White borrowers.
+
+The forbearance participation channel also explains part of the observed racial and ethnic heterogeneity in refinancing during the pandemic. \citet{gerardi2023mortgage} show that observable borrower and loan characteristics account for about 80\% of the Black–White refinancing gap following the Global Financial Crisis. In contrast, \citet{gerardi2021racial} find that during the COVID-19 refinancing wave, observables explain only 20\% of the gap, suggesting that most of the disparity remains unexplained. I show that, conditional on the same observables, forbearance participation alone reduces the minority refinancing gap by about 8\% and 15\% in the GSE and FHA samples, respectively.  
+
+
+% \andreas{I think here you need a paragraph summarizing the qualitative findings and discussing potential policy implications}
+
+EDITTT  Taken together, my results show that while the CARES Act forbearance program was successful in preventing delinquency and providing liquidity relief, it also led to substantial refinancing lockouts at a time of historically low interest rates. The magnitude of the forgone savings is economically large—on the order of hundreds of millions of dollars annually—and disproportionately borne by minority and lower-income borrowers. These findings suggest that crisis-response policies should carefully weigh liquidity provision against the cost of restricting access to beneficial refinancing opportunities. Designing forbearance programs that allow conditional or streamlined refinancing, or that automatically facilitate refinancing upon exiting forbearance, could mitigate these unintended costs while maintaining the program’s stabilizing role in the housing market.
+\clearpage
+
+% While \citet{gerardi2023mortgage} show that roughly 80\% of the racial refinancing gap in the aftermath of the Global Financial Crisis could be explained by observables, \citet{gerardi2021racial} find that the same approach accounts for only about 20\% of the gap during the COVID-19 refinancing wave.  
+
+
+% Despite matching, a natural concern is that, absent forbearance, the treated sample might not have been able to refinance because they could not manage to stay current on their mortgage. To address this potential heterogeneity, I limit the sample to borrowers who entered forbearance as a precaution against future uncertainty, while continuing to make their mortgage payments. For these borrowers, the cost of entering forbearance is especially salient, as they were more clearly eligible for refinancing than those who missed payments during the program.  Interestingly, while the refinancing gap shows a similar upward trend in 2020, it stays around 7\% level over 2021. \\
+
+
+
+
+
+
+% I add to research on forbearance and other financial assistance programs implemented in response to COVID-19. \href{https://www.nber.org/papers/w28357}{Cherry et al. (2021)}, \href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3789349}{An et al. (2022)}, and \href{https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3742332}{Zhao et al. (2020)} present a wealth of information on patterns of forbearance take-up. \href{https://www.nber.org/papers/w28357}{Cherry et al. (2021)} focuses on the flow of relief to households suffering pandemic-induced shocks that would otherwise have faced debt distress. They also show that more financially vulnerable and lower-income borrowers stay in forbearance for longer durations. I find consistent behavior in the NSMO dataset, in which borrowers who are more financially fragile are more likely to take up forbearance. Nevertheless, my central finding sheds light on the underexplored effect of the forbearance program on borrowers’ refinancing ability.
+
+
+
+\section{Related Literature}
+\label{literature}
+\andreas{I would NOT make that a separate section -- just integrate in the intro}
+
+\noindent I contribute to several strands of literature on mortgage forbearance. A first set of studies documents its stabilizing role: forbearance mitigated household financial distress, reduced delinquencies, and prevented a foreclosure wave during the pandemic (e.g., \citet{an2022inequality}; \citet{contat2024individual}; \citet{cherry2021government}). Along these lines, \citet{capponi2022effect} show that the foreclosure moratorium generated positive spillovers for refinancing by preventing distressed borrowers from entering foreclosure, which stabilized house prices and, through higher collateral values and lower LTV ratios, reduced refinancing costs for households outside forbearance.
+
+A second, more recent strand emphasizes the costs and unintended consequences of forbearance. \citet{gete2025forbearance}, for example, show that the policy tightened credit supply through higher CRT spreads. I complement and extend this strand by focusing on the program’s refinancing ban. I document that, while forbearance provided short-run relief, it simultaneously imposed large refinancing costs on participating households—precisely at a time of historically low interest rates. This highlights forbearance as a dual-edged policy: stabilizing the market as a whole while restricting access to cheaper credit for those inside the program.
+
+Another literature documents widespread household refinancing mistakes, where households either fail to refinance when it is financially optimal or refinance suboptimally, incurring unnecessary costs (\citet{agarwal2013optimal}; \citet{keys2016failure}, \citet{agarwal2017systematic}). These behaviors are often attributed to inattention, limited financial sophistication, or behavioral biases. My findings add a new dimension: during COVID-19, refinancing inaction was not always behavioral. Many households who entered forbearance were legally barred from refinancing despite potential gains, meaning that part of the observed refinancing shortfall cannot be interpreted as a mistake. 
+
+
+I also contribute to the extant literature on refinancing channel of monetary policy transmission to the real economy. Prior studies show that lower rates—particularly through quantitative easing (QE)—stimulated refinancing, reduced payments, and increased consumption, though with uneven distribution across borrowers (\citealp{keys2016failure}; \citealp{di2020quantitative}; \citealp{beraja2019regional}). This paper shows that the CARES Act refinancing ban significantly restricted refinancing channel. Despite historically low rates, forborne borrowers were unable to refinance, limiting monetary policy pass-through precisely when it was most powerful. Moreover, the effects were highly unequal. I document that minorities and low-income groups faced especially severe refinancing penalties. This extends the literature on distributional consequences of monetary policy by showing that policy design can amplify pre-existing inequalities in refinancing access (\citet{gerardi2021racial,gerardi2023mortgage}, \citet{agarwal2024refinancing}).
+ 
+
+\section{Institutional Setting: US Mortgage Market, Refinancing Wave and Debt Forbearance} \label{sec:background}
+
+The Coronavirus Aid, Relief, and Economic Security (CARES) Act was signed into law on March 27, 2020, at the onset of the COVID-19 pandemic. The CARES Act included a variety of relief measures for consumers and businesses, with residential mortgage forbearance standing out as one of the major elements for U.S. households.
+
+Prior to the pandemic, mortgage forbearance was available only on a case-by-case basis, usually requiring borrowers to demonstrate temporary financial distress, and show their ability to resume payments later. The CARES Act changed this process for federally backed mortgages, including loans guaranteed by the government-sponsored enterprises (GSEs), the Federal Housing Administration (FHA), and the Veterans Administration. Under Section 4022 of the Act, borrowers with these loans could request forbearance for up to 12 months without incurring fees, penalties, or interest charges beyond what would have accrued under the original loan schedule. The program was later extended to allow up to 18 months of relief. The Act imposed a temporary moratorium on federally backed mortgages.
+
+Forbearance is not debt forgiveness or a permanent modification. Instead, it is a temporary suspension or reduction of scheduled payments. During the forbearance period, interest on the loan balance continues to accrue, but borrowers are shielded from foreclosure and other collection actions. Once the forbearance period ends, borrowers are responsible for making up the missed payments. Repayment plans typically follow three structures. The first is a
+Lump-sum repayment, where all missed payments are due at once. The second option is a repayment plan with higher monthly installments, where the arrears are spread over a fixed number of months by temporarily increasing the regular payment. The third and the most commonly used option, named payment deferral,  allows borrowers to resume their regular monthly payments, with the forborne amount set aside as a non-interest-bearing balance due at maturity, refinance, or property sale.
+
+A key feature of the CARES Act forbearance program was that it was not automatic. Borrowers had to contact their loan servicer and request relief. The process, however, was intentionally streamlined: unlike pre-pandemic practices, borrowers were not required to provide documentation of hardship beyond affirming that they were experiencing a pandemic-related disruption. As a result, the program was widely adopted. By the end of 2021, an estimated 6\% of GSE-backed mortgage principal and 25\% of FHA-backed mortgage principal entered forbearance.\footnote{~\hyperref[tab:aggregate_saving]{Table~\ref{tab:aggregate_saving}} details the estimation sources. \citet{cherry2021government} estimate that \$16.6 billion of GSE-backed mortgage principal and \$10.2 billion of FHA-backed mortgage principal were in forbearance at the beginning of 2021.}
+
+
+While forbearance temporarily paused mortgage payments, it also imposed important restrictions on borrowers’ ability to refinance. These restrictions differed across GSE and FHA loans and depended on payment behavior during the forbearance period. Under the GSE framework established by the Federal Housing Finance Agency in May 2020, borrowers who remained current on scheduled payments could refinance or purchase even while still in an active forbearance plan. By contrast, refinancing eligibility was deferred once a payment was missed. Borrowers then had to conclude the forbearance plan and demonstrate renewed performance by making three consecutive on-time payments under a repayment plan, deferral, or modification.
+
+FHA policy, as set forth in Mortgagee Letter 2020-30, adopted a stricter approach. Any forbearance plan had to be formally terminated before closing, even if the borrower had made all scheduled payments during the plan. Borrowers who remained current were then treated as never delinquent and could refinance immediately. However, borrowers who missed payments faced seasoning requirements that varied by transaction type: three consecutive post-forbearance payments for purchase and no cash-out refinances, but twelve consecutive payments for cash-out refinances. \Javad{Here, the negative effect of forbearance on refinancing is more pronounced. Even missing a single payment requires borrowers to make 12 consecutive payments after exiting forbearance, which seriously restricts borrowers' ability to extract equity. It may help me to argue against Capponi et al (2022). What they say is that forbearance lowers the foreclosure rate, which in turn prevents house price depreciation. As a result, borrowers could refinance with a better LTV. In case of cash out refinance, they argue that forbearance then helps higher equity extraction. I think their main contribution is about the SPILLOVER OF THE FORBEARANCE ON NON-FORBEARANCE BORROWERS.}
+These refinancing restrictions coincided with the historically low interest rate environment created by the Federal Reserve’s quantitative easing measures. As a result, differences in the GSE and FHA frameworks translated into heterogeneous refinancing behavior and in turn heterogeneous savings losses for otherwise similar borrowers.
+
+
+\section{Data and Summary Statistics} \label{sec:sumstat}
+
+\subsection{The National Survey of Mortgage Originations (NSMO)}
+
+
+For most of my analyses, I use the public version of the National Survey of Mortgage Originations (NSMO), a quarterly nationally representative survey jointly conducted by the Federal Housing Finance Agency (FHFA) and the Consumer Financial Protection Bureau (CFPB). At the end of each quarter, about 6,000 new mortgages are drawn from the National Mortgage Database (NMDB) to form NSMO sample. The NSMO dataset collects detailed information on borrowers’ experiences obtaining a mortgage, their understanding of the mortgage market, their future expectations, as well as various measures of financial sophistication studied in the literature (\citet{agarwal2017systematic}; 
+\citet{mueller2022increasing}; \citet{jorring2024financial}; \citet{bhutta2024paying};
+\citet{tsouderou2025social}).
+ 
+ In addition to self-reported survey data, NSMO is linked to administrative records from mortgage servicing and consumer credit files, providing access to borrower-level variables rarely available in other public mortgage datasets. In particular, the dataset explicitly tracks borrower forbearance take-up and exit events, allowing for detailed analysis of how forbearance interacts with refinancing decisions. It also records borrowers' updated credit scores even after loan termination, as well as mark-to-market loan-to-value (LTV) ratios. These features serve two purposes: first, the updated credit scores and LTVs improve measurement of borrower risk profiles, which directly affect refinancing incentives through the available rate and equity channels; and second, access to updated credit scores after loan termination allows me to simulate the refinancing rates available in counterfactual analyses, even for borrowers who have exited their mortgage in the observed data.
+
+
+
+Mostly following \citet{fuster2022predictably}, I restrict the sample to first-lien, fixed-rate purchase or refinance mortgages originated before 2019Q2, ensuring that each loan has at least six months of seasoning by the beginning of 2020. I further limit the sample to conventional and FHA-insured loans, and exclude jumbo mortgages and loans with prepayment penalties. To account for systematic differences in borrower risk profiles and refinancing behavior, I analyze FHA and GSE loans separately. The period of analysis covers 2020 and 2021, a time of historically low mortgage interest rates. I also exclude borrowers who terminated their mortgage before 2020 to ensure that all loans in the sample were at risk of refinancing during the study period. The full list of variable definitions and sample restrictions is presented in \hyperref[tab:description]{Table~\ref*{tab:description}} and \hyperref[tab:sample_restriction]{Table~\ref*{tab:sample_restriction}}, respectively.
+
+\subsection{Summary Statistics}
+
+\hyperref[tab:sumstat]{Table~\ref*{tab:sumstat}} reports summary statistics for key borrower and loan characteristics in my final sample. The variable ``Performance Suppress Experience'' indicates whether a mortgage has at least one quarter with missing payment data. In the forbearance sample, approximately 33\% of GSE loans and 58\% of FHA loans exhibit suppressed performance records, compared to only 1\% and 2.6\%, respectively, among non-forborne loans. The markedly higher incidence of suppressed performance among forbearance loans, relative to non-forborne loans, supports the interpretation that missing payment data predominantly arises from servicer reporting practices in response to borrower nonpayment during forbearance periods (\citet{cfpb2024}).\footnote{~While it is not possible to fully distinguish whether missed payments reflect strategic behavior or financial distress, \citet{farrell2020did} find little evidence of widespread moral hazard. They show that households using forbearance to suspend mortgage payments experienced larger declines in total income than other homeowners and showed income patterns similar to delinquent borrowers who did not enter forbearance. Moreover, forbearance participants were more likely to have lost labor income and to have received unemployment insurance benefits compared to non-forborne borrowers.} 
+
+ ``90+ DPD Experience Before 2020'' captures pre-treatment experience of a serious delinquency -- defined as being 90 days or more past due. There is a significant gap in delinquency experience across sub-samples. Among GSE loans, only 0.44\% of non-forborne borrowers had a history of serious delinquency, compared to 2.69\% among forborne borrowers. The delinquency gap widens from 2.79\% to 10.54\% among the FHA sample. The same pattern holds for other origination characteristics that proxy for borrower risk. The average duration of forbearance is 2.33 and 3.02 quarters for GSE and FHA groups respectively. FHA borrowers and borrowers in forbearance systematically exhibit higher  ``SATO'',\footnote{~In NSMO dataset, ``SATO'' (spread at origination) is computed by subtracting PMMS rate from loan rate at origination for both GSE and FHA loans. I separate ``SATO'' for FHA loans by subtracting FHA market rate available in Optimal Blue from the loan rate. As a result the benchmark market rate for FHA and GSE loans are not the same.} higher interest rates, lower credit scores, higher loan-to-value (LTV) ratios, higher debt-to-income ratios, lower incomes, and higher loan balances. These patterns are consistent with prior findings that borrowers with weaker credit profiles are substantially more likely to take up forbearance when facing financial distress (\citet{farrell2020did}; \citet{cherry2021government}; \citet{an2022inequality}).
+
+The minority composition also varies across borrower groups. In both the GSE and FHA samples, Black and Hispanic borrowers make up a larger share of forbearance sample relative to non-forborne sample. In the GSE sample, 4\% of forbearance borrowers are Black compared to 8\% of non-forborne borrowers, and 10\% are Hispanic compared to 6\%. In the FHA sample, 13\% of forbearance borrowers are Black compared to 26\%, and 18\% are Hispanic compared to 12\%. The higher share of minority groups in forbearance sample is consistent with evidence that minority populations experienced higher rates of mortgage forbearance during the COVID-19 pandemic, reflecting the disproportionate economic impact of the crisis on minority communities (\citet{cherry2021government};  \citet{an2022inequality}). 
+
+``Market 30Y-Mortgage Rate'' is PMMS and FHA market rate for GSE and FHA sample respectively. For each borrower and each quarter in GSE sample, the effective mortgage market rate available to a borrower encompasses three elements. The base rate is simply contemporaneous PMMS rate for the fixed rate mortgages with 30 years of maturities. The second element is the LLPA upfront fee for refinancing. To transform the overhead cost to the rate premium, I divide it by the expected loan rate of 5 years (\citet{bhutta2024paying}). The last element is  an additional residual premium at the origination beyond LLPA premium. This element accounts for unobserved time-invariant borrower-specific pricing attributes. For the FHA sample, I first compute the rate premium relative to the average FHA mortgage market rate. Thus, the available rate would be the prevalent FHA market rate plus the premium at origination.\footnote{~In order to avoid the complication of FHA borrowers having the choice of refinancing into a GSE
+mortgage, I assume that FHA borrowers refinance into a new FHA loan. I also assume that unobserved borrowers risk attributes are time-invariant and captured via the rate premium at the origination.} 
+
+I follow \citet{berger2024optimal} and define a loan termination as refinance when the borrower's available loan rate is lower than the origination rate.\footnote{ ~\citet{berger2024optimal} assume that termination when the available rate is higher than origination rate is mainly attributed to the moving. Also, the only reason one might refinance into a higher-rate loan would be to do a cash-out refinance. However, it is often cheaper to get a home equity line of credit instead of refinancing into a higher rate mortgage.} To eliminate any termination related to the delinquency, all loans that are prepaid while not being in current performance status are not considered as refinance.  (\citet{gerardi2023mortgage}).\footnote{~While I use this definition in the main body of the paper, I propose another alternative benchmark threshold of 75 basis points in \hyperref[sec:75bps]{Appendix~\ref*{sec:75bps}}.}The unconditional quarterly refinancing probability in the GSE sample declines by about 52\%, from 9.69\% in the non-forborne group to 4.56\% in the forbearance group. In FHA sample, the gap expands to 79\%, from 8.79\% to only 2.82\%. 
+
+Because income and wealth shocks are closely correlated with the likelihood of debt repayment, I use ``Updated Credit Score'' and ``Credit Score Change''—defined as the quarterly difference between the updated credit score and the credit score at origination—as proxies for borrowers’ underlying financial conditions. These variables capture changes in observable creditworthiness that reflect both persistent borrower characteristics and time-varying shocks, including those related to financial distress. Consistent with this interpretation, both GSE and FHA borrowers in the forbearance group exhibit a persistent decline in their credit scores over time. This observation supports the importance of controlling for updated credit risk measures that dynamically capture heterogeneity in creditworthiness.  
+
+
+To measure borrower's incentive to refinance, I follow the call option value proposed by \citet{deng2000mortgage}. ``Call Option'' accounts for loan amortization and the time value of money by comparing the present discounted value of the remaining mortgage payments discounted at the borrower's current mortgage rate with the value discounted at the available rate upon refinancing.\footnote{~\citet{deng2000mortgage} assume the available for each borrower is simply the average mortgage market rate.} Formally, for borrower $i$ at loan age $k$ quarters, the call option value is computed as:
+
+\[
+\text{CallOption}_{i,k} = \frac{V_{i,m} - V_{i,r}}{V_{i,m}}
+\]
+where
+\[
+V_{i,m} = \sum_{s=1}^{TM_i - k_i} \frac{P_i}{(1 + m_{it})^s}, \quad V_{i,r} = \sum_{s=1}^{TM_i - k_i} \frac{P_i}{(1 + r_i)^s}
+\]
+and $r_i$ is borrower $i$'s mortgage rate, $TM_i$ is the original loan term, $k_i$ is the loan age in quarters, $P_i$ is the scheduled quarterly payment, and $m_{it}$ is the available refinancing rate in quarter $t$. Therefore, $V_{i,m}$ and $V_{i,r}$ denote the present value of borrower $i$'s remaining mortgage payments discounted at the available refinancing rate and original mortgage rate $r_i$ respectively. In both samples, the call option values of the forborne borrowers are higher, mainly because of larger loan balance.\footnote{~Note that \citet{deng2000mortgage} can overestimate borrowers call option value by assuming the average market rate for all borrowers. The main reason is ignoring both LLPA upfront fees and other residual rate premium at the origination. \citet{gerardi2023mortgage} also document that adding LLPA upfront fee to the available loan rate in HMDA-McDash-CRISM GSE sample can shrink about 40\% of call option value gap for  minorities.}  
+
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:sumstat]{Table~\ref*{tab:sumstat}} about here]}
+\bigskip
+
+
+
+\section{The Model} \label{sec:model}
+
+
+
+\subsection{Empirical Setup}
+
+I estimate the following linear probability model (LPM) to identify the causal effect of participating in the forbearance program on mortgage refinancing. However, linear models offer easier interpretability and can accommodate multiple levels of fixed effects. My core regression models follow the general structure below:
+\begin{equation}
+\label{equation:baseline_outcome}
+\text{Refinance}_{it} = 
+\beta \cdot \text{Forbearance}_{it} +  
+\gamma \cdot X_{ijt} + 
+\alpha_{t} + 
+\epsilon_{it},
+\end{equation}
+
+\noindent
+where $\text{Refinance}_{it}$ is an indicator for voluntary mortgage refinance for loan $i$ in quarter $t$, and $\text{Forbearance}_{it}$ is a binary variable equal to one if borrower $i$ is in forbearance program in quarter $t$. The vector $X_{ijt}$ includes borrower- and loan-level controls, while $\alpha_t$ denotes quarter-year fixed effects. Standard errors are clustered at the borrower level.
+
+Similar to the common hazard frameworks in the mortgage literature, the model estimates the likelihood of refinancing in quarter $t$ conditional on surviving up to the quarter $t-1$. One of the main concerns regarding using LPM in Hazard framework is the right-censored data, which means mortgages that do not refinance during the study period and are either still active at the end of the sample or prepay during the study period for the reasons other than refinancing. However, right censoring is not a major concern in my setting. The study period spans the entire historically low interest rate window of 2020–2021. Since early 2022, mortgage rates have risen sharply, pushing the available refinancing rate above the original mortgage rate for the majority of borrowers. As a result, the economic incentive to refinance effectively disappears for most right-censored loans. This mitigates the risk of bias from censoring in the estimation of refinancing probabilities. That said, for the sake of addressing right-censoring, as well as critics of linear probability models, I also re-estimate \hyperref[equation:baseline_outcome]{Equation~\ref{equation:baseline_outcome}} using both logit and Cox proportional hazards specification.\footnote{~Linear probability models can produce biased and inconsistent estimates when the predicted values fall outside of the [0,1] interval (see, for example, \citet{horrace2006results})} The estimation results are detailed in the robustness section.
+
+
+\subsection{Estimation Results}
+\label{sec:estimation_results}
+
+\Javad{I followed "Generative AI at work, QJE (2025)" and started with TWFE and then Sun and Abraham estimator. I can also move the TWFE to the appendix following "State-dependent effects of monetary policy: The refinancing channel, AER (2022)", where they only show the IV estimation in the main body. }
+
+The set of control variables $X_{ijt}$ is selected using the semi-penalized LASSO-logit regression of \citet{belloni2016post}. This approach always keeps a baseline set of relevant covariates—identified in the literature—by entering them unpenalized, while applying an $\ell_1$ penalty to the remaining NSMO survey variables to select the most predictive factors for both treatment and outcome. \footnote{~For example some of extant studies highlight that forbearance is associated with credit scores \citet{mcmanus2021covid}; \citet{shi2022heterogeneity}; \citet{kim2024intermediation}), debt-to-income and loan-to-value ratios (\citet{mcmanus2021covid}), income levels (\citet{cherry2021government}; \citet{an2022inequality}), and race and ethnicity (\citet{cherry2021government}; \citet{an2022inequality}; \citet{gerardi2021racial,gerardi2023mortgage}), urban residency and exposure to the COVID-19 pandemic (\citet{akana2021recent}; \citet{cherry2021government}). \citet{contat2024individual} use American Survey of Mortgage Borrowers (ASMB) to add covariates that capture financial knowledge and self-assessment, risk preferences, beliefs about future home prices, moral attitudes toward nonpayment, and life and work changes.} I describe the detail of the selection procedure in \hyperref[appendix:lasso]{Appendix~\ref{appendix:lasso}}. 
+
+The baseline unpenalized group of covariates covers three directions of potential confounders. The first set includes borrower demographic characteristics such as race/ethnicity, gender, age, and an indicator for having a co-applicant. To capture prior credit risk, I control for whether the borrower had a 90+ day delinquency prior to 2020 and whether the loan was originally a refinance or purchase mortgage. The second direction consists of underwriting characteristics, including debt-to-income ratio at origination, the borrower’s updated VantageScore 3.0, and the change in the credit score since origination—both lagged by one quarter to mitigate reverse causality from refinancing to credit score. The third direction accounts for financial incentives to refinance by controlling for \citet{deng2000mortgage} refinancing call option value, and spread at the origination. \hyperref[appendix:ADL]{Appendix~\ref{appendix:ADL}} also suggests two alternative proxies for refinancing call option value. 
+
+In addition to these baseline controls, the LASSO selection procedure identifies a complementary set of borrower-level behavioral and experiential variables that can alleviate the potential confounder concern. These include self-reported familiarity with the mortgage process and interest payment policy, consultations with financial advisors or banks,  satisfaction with mortgage terms, and having a rent out plan. Other controls include house price change expectations, self employment indicator, and major life events such as household composition changes or starting a new job.
+
+\hyperref[tab:lpm_prepayment]{Table~\ref*{tab:lpm_prepayment} demonstrates the estimation results for \hyperref[equation:baseline_outcome]{Equation~\ref{equation:baseline_outcome}}. All specifications include fixed effects for loan age, origination quarter, mark-to-market loan-to-value ratio bins, remaining balance, borrower education, borrower income categories, and low-income region indicators. 
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:lpm_prepayment]{Table~\ref*{tab:lpm_prepayment}} about here]}
+\bigskip
+
+The main analysis is conducted separately for the GSE and FHA loan samples, with results reported in columns (1)--(6) and (7)--(12) of \hyperref[tab:lpm_prepayment]{Table~\ref*{tab:lpm_prepayment}}, respectively. In all columns the outcome variable is multiplied by 100 so that the estimated coefficients are interpreted as the percentage point change in refinancing probability. 
+
+Column (1) and (7) only control for the treatment variable, forbearance indicator. In GSE (FHA) sample, forbearance borrowers refinance rate is lower than the control group by 5.44\% (6.49\%), which documents a reduction of about 56\% (73\%) compared with the unconditional average refinancing rate of non-forborne sample.
+
+Column (2) and (8) adds borrowers' race/ethnicity, as well as an indicator for more than 90 days past days due before 2020. In both samples black borrowers are less likely to refinance to the base group, white non-Hispanic borrowers. This is consistent with the well-established findings in the mortgage literature that confirms minority borrowers are less responsive to the refinancing opportunities in the aftermath of monetary expansions (See, for example, \citet{gerardi2021racial, gerardi2023mortgage}). In both samples, borrowers who had been past due before 2020 were more than 4\% less likely to refinance during 2020 and 2021.     
+
+Columns (3) and (9) introduce gender, age, a co-applicant indicator, and an indicator for whether the loan was itself a refinance. Loans that were originated as refinances exhibit a higher refinancing hazard, which contrasts with the findings of \citet{gerardi2023mortgage} that focus on the refinancing wave following the 2008 financial crisis. While the effect of having a co-applicant on refinancing is positive in the GSE sample, the opposite holds in the FHA sample. This may reflect a greater financial contribution of co-applicants in the GSE sample, which in turn reduces credit risk from the lender’s perspective.\footnote{In the sample, approximately 65\% of FHA co-applicants have no observable credit score, compared to 52\% of GSE co-applicants. This suggests that co-applicants in the FHA sample are less financially active and may impose a financial burden, whereas in the GSE group, co-applicants are more likely to contribute a new source of income.} An additional year of age also reduces the probability of refinancing by approximately 0.06 to 0.08 percentage points.
+
+Columns (4) and (10) include both the updated credit score and the credit score change since origination, with both variables scaled by 100. These variables proxy borrowers' eligibility status for refinancing.  The estimated coefficient is positively significant. A hundred increase in the updated credit score is associated with roughly a 1.3 and 1.7 percentage point increase in refinancing probability in GSE and FHA samples respectively.  
+
+
+In columns (5) and (11), I add \citet{deng2000mortgage} refinancing call option value to control for borrowers' refinancing incentive. One standard deviation increase in  call option value (4.9 percentage points) increase refinancing hazard by about 2.3 percentage points. The same effect hold in FHA sample with a magnitude of 0.9 percentage points.  I also control for spread at the origination to proxy for constraints that may prevent a borrower from obtaining the prevailing market rate. However, the estimated coefficient for both samples is insignificant.
+
+Columns (6) and (12) include additional covariates selected through the semi-penalized LASSO-logit regression of \citet{belloni2016post}.  In the GSE sample, borrowers who reported being unfamiliar with the mortgage process are significantly less likely to refinance, consistent with the finding on the importance of financial literacy on refinancing behavior. Borrowers who applied through a mortgage broker are 1.21 percentage points more likely to refinance, reflecting the broker’s role in lowering search costs and providing refinancing guidance. Having consulted an attorney is also negatively correlated with refinancing. Similarly, those with a rent-out plan and self-employed individuals are 2.04 and 1.15 percentage points less likely to refinance, respectively.  Borrowers who reported a significant decrease in house prices are also 1.61 percentage points less likely to refinance. Similarly, those who recently added a non-partner household member show a higher refinancing probability, potentially due to increased household income or financial support.
+
+In the FHA sample (column 12), the effects are almost similar in direction but vary in magnitude. Lack of familiarity with income qualification and mortgage process is again negatively associated with refinancing. As in the GSE sample, the presence of a new non-partner household member is associated with a significant increase in the likelihood of refinancing. Notably, a significant perceived decrease in house prices corresponds to a large drop—around 4.8 percentage points—in refinancing, likely reflecting concerns about home equity and eligibility. The estimated coefficient for the forbearance dummy remains robustly negative and significant in all columns, showing the persistent adverse effect of entering the forbearance program on borrowers' refinancing ability. 
+
+
+\subsection{Event Study Analysis with Staggered Treatment and Heterogeneous Treatment Effect}
+\label{sec:event_study}
+
+Recent causal inference literature has shown that two-way fixed effects regressions can yield biased estimates when treatment adoption is staggered over time and treatment effects vary over time or cohort \citep{de2020two, goodman2021difference, callaway2021difference, sunAbraham2021, baker2022much, borusyak2024revisiting}. These concerns are directly relevant in the context of forbearance, where the timing of entry is staggered and the refinancing effects can vary over time due to the refinancing ban policy of the program.  \hyperref[tab:forbearance_share]{Table~\ref*{tab:forbearance_share}} reports the quarterly share of borrowers who enter forbearance.
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:forbearance_share]{Table~\ref*{tab:forbearance_share}} about here]}
+\bigskip
+
+As we can see, the distribution of entering forbearance is highly concentrated in the second quarter of 2020, the beginning of COVID-19 lockdown.\footnote{~Using HMDA–McDash–CRISM proprietary database, \citet{an2022inequality} report that approximately 60\% of borrowers entered forbearance in the second quarter of 2020.} 
+
+To account for the potential pitfall of the two-way fixed effects model in previous section, I follow the interaction-weighted difference-in-differences estimator proposed by \citet{sunAbraham2021}. Assuming parallel trend and no anticipation, interaction-weighted estimator provides consistent estimates of the heterogeneous treatment effect. Formally, the specification is given by:
+\begin{equation}
+\label{equation:event_study}
+\text{refinance}_{it} = \alpha_i + \lambda_t + \sum_{k \neq -1} \beta_k \cdot \mathbf{1}(\text{EventTime}_{it} = k) + \epsilon_{it},
+\end{equation}
+where $\text{Refinance}_{it}$ is the refinancing indicator for loan $i$ in quarter $t$, $\alpha_i$ denotes borrower fixed effects, and $\lambda_t$ denotes quarter-year fixed effects. The coefficients of interest, $\beta_k$, capture the effect of entering forbearance on the likelihood of refinancing at each event time $k$, where $k$ indexes the number of quarters relative to the first quarter of forbearance participation. I omit the $k = -1$ quarter, which serves as the reference group for the estimation report.
+
+A key empirical challenge in applying interaction-weighted difference-in-differences estimator is that, by construction, forbearance borrowers do not refinance before entering forbearance—otherwise, they would have exited the sample. In contrast, control group borrowers are allowed to refinance in any quarter, leading to a structural violation of the parallel trends assumption in the pre-treatment period. This creates mechanical zeros in the outcome variable for the treated group prior to treatment, while the control group may already display positive refinancing behavior.
+
+To address this issue, I exploit concentration of the forbearance entering and limit the treatment group to borrowers who enter the forbearance in the second quarter of 2020, shown in \hyperref[tab:forbearance_share]{Table~\ref*{tab:forbearance_share}}. To alleviate parallel trend concerns, I also exclude from the control group borrowers who refinance in the first quarter of 2020, ensuring that both treated and control groups have structurally zero refinancing outcomes in the only pre-treatment quarter (2020Q1). \hyperref[fig:event_study]{Figure~\ref*{fig:event_study}} illustrates the interactive-weighted
+event-study estimation of \citet{sunAbraham2021} for the impact of entering mortgage forbearance program on borrowers' mortgage refinancing behavior, using modified sample.
+
+
+\bigskip
+\centerline{\bf [Place \hyperref[fig:event_study]{Figure~\ref*{fig:event_study}} about here]}
+\bigskip
+
+
+
+The estimation results are consistent with the baseline linear probability models. Borrowers experience a significant and persistent drop in refinancing probability for several quarters after entry. Both magnitude and persistence of the refinancing reduction is more pronounced among FHA borrowers compared to GSE borrowers. The can be two potential channels that explain more persistency among FHA borrowers. The first is the fact that FHA borrowers stay in forbearance for more quarters than GSE borrowers. The second channel to explore is the refinancing behavior after exiting forbearance and paying consecutively for one quarter. \hyperlink{fig:event_study_after_forb}{Figure~\ref{fig:event_study_after_forb}} reports interaction-weighted difference-in-differences estimator with the event time is the second quarter after exiting forbearance (ALERT: EXITING FORBEARANCE IS NOT EXOGENOUS! NO CAUSAL CLAM!).  The estimation shows that both GSE and FHA borrowers refinance in the same rate as their corresponding control group once they are allowed. Therefore, the refinancing heterogeneity seems to be only driven by the program design.    
+
+I also compute an aggregated average treatment effect by taking the weighted mean of the estimated event-study coefficients from the quarter of forbearance entry ($k = 0$) through six quarters after entry ($k = 6$), applying equal weights to each post-treatment period. This aggregation follows the method suggested by \citet{sunAbraham2021}, where linear combinations of dynamic effects are computed using the full variance-covariance matrix of the estimates to account for their correlation. The results show that for the GSE sample, the average effect of forbearance on refinancing across the first six post-entry quarters is $-3.16$ percentage points (standard error = $0.66$). For the FHA sample, the corresponding effect is even larger, estimated at $-5.18$ percentage points (standard error = $0.87$). For both samples, the estimated effect is significant at the $1\%$ level. These findings suggest that forbearance participation causes a persistent reduction in refinancing activity, mainly driven by the program design. 
+
+\section{Dollar Value Consequences of
+Refinancing Disparities} \label{sec:cf_analysis}
+
+The estimation results in \hyperref[sec:estimation_results]{Section~\ref{sec:estimation_results}} document that forbearance borrowers missed the historical opportunity of refinancing after 2020 quantitative easing. 
+In this section, I run a Monte-Carlo counterfactual simulation
+with 10,000 iterations to determine the monetary consequences of the refinancing
+disparities due to entering forbearance.
+To do this, I simulate the interest payment savings that
+forbearance borrowers would have received were they refinancing at the same refinancing hazard
+as non-forborne borrowers.  
+
+\subsection{Interest rate and payment disparities attributable to differences in refinancing behavior}
+
+I begin by estimating a logit regression in which the dependent variable is a refinancing indicator and the explanatory variables include the full set of covariates controlled in column (6) of \hyperlink{tab:lpm_prepayment}{Table~\ref{tab:lpm_prepayment}}. From this model, I compute the predicted refinancing probability for each borrower-quarter using the logistic transformation of the estimated log-odds.
+
+To simulate counterfactual refinancing behavior, I adjust the predicted refinancing probabilities for borrowers who entered forbearance by removing the estimated effect of the forbearance dummy from their predicted log-odds. This yields counterfactual log-odds representing the likelihood of refinancing had these borrowers not entered forbearance. I then transform these adjusted log-odds back into predicted probabilities. Importantly, in contrast to \citet{gerardi2023mortgage}, the simulation is capturing
+the interest payment implications of the conditional
+differences in refinancing propensities caused by forbearance program. 
+
+Next, I simulate a counterfactual refinancing decision using a random uniform distribution. For each borrower-quarter, I generate a random number and set the counterfactual refinancing outcome equal to one if the counterfactual probability exceeds this draw. The same logic is used to simulate actual refinancing behavior based on the unadjusted predicted probability. By construction, the counterfactual log-odds exceed the actual log-odds, ensuring that borrowers who refinance in the actual scenario also refinance in the counterfactual. However, the reverse is not necessarily true, allowing the model to capture additional counterfactual refinances. In case of refinancing, I update the mortgage rate by assigning the updated available rate, explained in \hyperref[sec:sumstat]{section~\ref{sec:sumstat}}.
+Moreover, I impose the assumption that each borrower can refinance at most once in the counterfactual scenario. This modeling choice reflects the fact that it is highly unlikely that a borrower refinance twice in short time span of 2020 and 2021 with stable low market interest rate.This is in contrast to the longer horizon in \citet{gerardi2023mortgage} (2008–2015).
+
+As explained in \hyperref[sec:sumstat]{section~\ref{sec:sumstat}}, the average quarterly refinancing rate in the sample is approximately 9\%. This implies that, in each quarter, about 9\% of borrowers are dropped from the sample due to refinancing. However, using this unbalanced panel for simulation would lead to biased results, because the counterfactual refinancing assignment requires that all borrowers remain at risk of refinancing in each quarter of 2020 and 2021. That is, the simulation must be based on a balanced panel in which every borrower is hypothetically subject to the hazard of refinancing throughout the full period. To address this concern, I exploit the availability of borrower credit scores after refinancing -- a feature unique to the NSMO dataset --  and impute the missing observations accordingly.\footnote{~One concern regarding using borrowers' credit score after refinancing in actual scenario is that applying for mortgage refinance can temporarily impact a borrower’s credit score through new credit inquiry. Additionally, if refinancing leads to lower interest rates or reduced monthly payments, it can improve borrower credit over time by consistent, on-time payments on the new loan.  This impact then affects available rate for the new loan. I implement two robustness tests to alleviate this concern. First, I estimate the effect of refinancing on borrowers' updated credit scores using the difference-in-differences approach proposed by \citet{callaway2021difference}. The outcome variable is the updated credit score, and the treatment event is defined as the quarter in which the borrower refinances. I control for a set of baseline borrower and loan characteristics measured at origination. The results indicate a modest negative impact of refinancing on credit scores, which becomes apparent approximately one year after refinancing. The magnitude of the effect is limited—about 5 points for GSE borrowers and 10 points for FHA borrowers—implying that the impact of refinancing on borrowers' available rates through the credit score channel is economically negligible.
+
+Second, I impute credit score after refinancing with a two year rolling window with stochastic exogenous shock to the credit score with the magnitude equal to the window standard deviation. The simulation result is similar to the reported version. Both estimations are available upon request.} \hyperref[fig:simulation_cf]{Figure~\ref*{fig:simulation_cf}} demonstrates the simulation results:
+
+
+\bigskip
+\centerline{\bf [Place \hyperref[fig:simulation_cf]{Figure~\ref*{fig:simulation_cf}} about here]}
+\bigskip
+
+Panels (a) and (b) present the implied interest rate gap under the counterfactual scenario in which forbearance borrowers refinance at the same rate as non-forborne borrowers. As of the end of 2021, the rate gap attributable to forbearance-induced refinancing heterogeneity increases to 22 and 19 basis points for the GSE and FHA samples, respectively. Panels (c) and (d) translate this interest rate gap into annual interest payment savings, using the quarterly outstanding balance of the mortgage. By the end of 2021, refinancing heterogeneity caused by forbearance leads to an average annual interest payment difference of \$488 and \$366 for the GSE and FHA samples, respectively. The higher payment savings in the GSE sample, despite similar interest rate savings, are primarily driven by larger loan balances. 
+
+I the approximate the aggregated forgone saving as the implication of refinancing disparities for GSE and FHA
+mortgage market by extending my simulation results to the universe of GSE and FHA mortgages. For GSE and FHA mortgages, entering forbearance program imposes about \$845 and \$730 million additional annual interest
+payments in 2021Q4. 
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:aggregate_saving]{Table~\ref*{tab:aggregate_saving}} about here]}
+\bigskip
+
+As we can see, the design of the forbearance program, which restricts borrowers’ ability to refinance, results in an annual extra interest cost of about \$1.57 billion. In other words, forbearance program prevents a potential wealth redistribution that would otherwise occur if households could lock into a lower rate mortgage.
+
+
+\section{Further Analysis}
+
+\subsection{Refinancing Consequence of Forbearance Among Minorities and Low Income Groups}
+\label{sec:event_study_income}
+
+\Javad{The interaction term for both Income and Minority is insignificant. I ma not sure if my rest of analysis has that much value!}
+
+\hyperref[sec:estimation_results]{Section~\ref{sec:estimation_results}} quantifies the negative impact of the forbearance program's design on borrowers’ ability to seize refinancing opportunities during the historically low interest rate period following the 2020 quantitative easing. However, the negative effect of forbearance can be heterogeneous across borrower characteristics, primarily because of differential baseline refinancing propensities (\citet{agarwal2017systematic}; \citet{gerardi2023mortgage}; \citet{agarwal2024refinancing}). In this section, I examine how the effect of entering forbearance on refinancing behavior varies across income and race/ethnicity, two dimensions that have been shown to correlate strongly with refinancing decision when it is financially beneficial.
+
+\subsection{Income}
+\label{sec:income_eventstudy}
+
+To assess heterogeneity in the refinancing effects of forbearance across the income distribution, I re-estimate the interaction-weighted difference-in-differences specification by splitting the sample at the median income level. \hyperref[fig:event_study_income]{Figure~\ref*{fig:event_study_income}} displays the dynamic treatment effects for the GSE and FHA subsamples.
+
+For both income groups, FHA borrowers show a more pronounced refinancing decline after entering forbearance. 
+However, panel (b) reveals a sharper reduction in refinancing among higher-income borrowers for both GSE and FHA sample, with in gap for FHA loans reaches around 10 percentage points in several quarters. Among low income group, the average treatment effect across six post-entry quarters is $-3.04$ percentage points for GSE loans and $-4.29$ for FHA loans. This gap expands to $-3.34$ and $-7.67$ for higher-income borrowers. All estimates are statistically significant at the 1\% level.
+
+To explore the economic significance of the rate gap, I normalize the average treatment effect by baseline variation in refinancing hazard of the control groups. The mean refinancing rate varies substantially by both loan type and income level. Among low income borrowers, the average refinancing rate is 8.2\% for GSE loans and 7.8\% for FHA loans. The corresponding means for high income group are 11.6\% for both GSE and FHA loans.  This is consistent with \citet{agarwal2024refinancing}, who document that higher-income borrowers were more successful in securing refinancing at lower interest rates in 2020, based on Freddie Mac loan-level data. I then decompose the absolute average treatment effect differences between high and low income borrowers into two components. The first capture the baseline disparities in control-group refinancing rates. The second component, reflects refinancing heterogeneity caused by relative effect of forbearance. Formally, the absolute ATE for sample $g$ can be written as $|ATE_g| = \bar{Y}_g \cdot r_g$, where $\bar{Y}_g$ is the baseline average refinancing rate of control group in sample $g$ and $r_g$ the relative effect. The difference between high- and low-income groups then satisfies  
+\[
+\Delta ATE_{H-L} = (\bar{Y}_{H} - \bar{Y}_{L}) \cdot r_{H} \;+\; \bar{Y}_{L} \cdot (r_{H} - r_{L}),
+\]  
+with the first term capturing the contribution of baseline refinancing disparities and the second isolating the policy-driven difference.\footnote{~For example, for FHA loans, the absolute high--low income gap in treatment effects is 
+$\Delta ATE_{H-L} = 7.67 - 4.29 = 3.38$. Using the decomposition 
+$\Delta ATE_{H-L} = (\bar{Y}_{H} - \bar{Y}_{L}) \cdot r_{H} + \bar{Y}_{L} \cdot (r_{H} - r_{L})$, 
+with $\bar{Y}_{H} = 11.6$, $\bar{Y}_{L} = 7.8$, $r_H = 7.67/11.6 \approx 0.66$, and 
+$r_L = 4.29/7.8 \approx 0.55$, we obtain 
+$(11.6 - 7.8)\cdot 0.66 \approx 2.51$ and $7.8 \cdot (0.66 - 0.55) \approx 0.87$, 
+summing to $3.38$.
+}
+
+Decomposition shows a clear contrast between FHA and GSE loans. For FHA borrowers, the absolute high–low income gap of 3.38 percentage points is primarily baseline-driven: roughly 2.51 percentage points (74\%) of the difference only reflects higher refinancing rates of non-forborne borrowers in the high income sample compared with their corresponding controls in the low income group. The remaining 0.87 percentage points (26\%) arises from a stronger refinancing reduction because of entering forbearance. For GSE borrowers, 0.3 percentage points gap in average treatment effect is decomposed to 0.98 percentage points of baseline differences and -0.68 percentage points of policy gap. 
+
+% A primary reason for the higher refinancing impact is the duration of participation in the forbearance program. Among FHA borrowers, the average duration for high-income participants is 3.46 quarters, compared to 3.01 quarters for low-income participants. The opposite pattern holds in the GSE sample, where high-income borrowers remain in forbearance for an average of 2.28 quarters, while low-income borrowers remain for 2.57 quarters. The lower duration of staying in the forbearance can be attributed to the higher rate of financial mistakes among low income and minorities as well.\footnote{For example, \citet{an2022inequality} document that minority borrowers experience a higher rate of delinquency after exiting forbearance compared with their White counterparts.} \Javad{I'm not sure that much about the role of duration. That's just my observation.}
+% Another potential reason for the policy impact is that borrowers who exit forbearance and make consecutive payments for one quarter often do not refinance to a lower-rate mortgage, even when they are eligible.\footnote{For instance, \citet{allen2022debt} reports that  approximately 80\% of Canadian borrowers
+% were even unaware of the existence of forbearance.}
+
+
+% \Javad{Can I test the\textbf{} refinancing effect after exiting forbearance with Sun and Abraham estimator?}
+\subsection{Race}
+\label{sec:event_study_race}
+
+I next examine heterogeneity in the refinancing effects of forbearance across race and ethnicity. To alleviate small sample size issue, I aggregate Black and Hispanic borrowers in one minority sample.  \hyperref[fig:event_study_race]{Figure~\ref*{fig:event_study_race}} displays the dynamic treatment effects for GSE and FHA loans separately. In both samples, the negative refinancing gap is larger for FHA borrowers. The estimated average treatment effects six quarters since entry are 3.31\% and 6.17\% percentage points for White Non-Hispanic GSE and FHA borrowers, respectively. The corresponding estimates for minority borrowers are 3.93\% percentage points for GSE sample and 4.11\% percentage points for FHA sample. All effects are statistically significant at the 1\% level.
+
+Baseline refinancing hazard is also different between White and minority borrowers as well as across loan types. White non-forborne borrowers have a refinancing rate of 9.74\% for GSE loans and 9.06\% for FHA loans. This ratio decrease to 8.58\% and 6.98\% for GSE and FHA non-forborne sample for minority group. \citet{gerardi2021racial} report the same racial refinancing heterogeneity in 2020 using the merged HMDA-McDash-CRISM dataset.
+ 
+
+Following the decomposition framework introduced in the previous section, I separate the absolute White–minority gap for each loan type into baseline and policy components. In the FHA sample, 1.42 percentage points of the absolute refinancing gap between White and minority borrowers (2.06 percentage points) is explained by baseline hazard heterogeneity. The remaining 0.64 percentage points reflects the isolated impact of the forbearance program on White borrowers’ refinancing ability.   For GSE loans, the White–minority gap of -0.62 percentage points consists of a 0.39 percentage points baseline difference and a -1.01 percentage points policy gap. The positive policy component indicates that, conditional on baseline refinancing propensities, the forbearance program reduced minority borrowers’ refinancing abilities more than those of White borrowers, effectively reversing the baseline gap. 
+
+\subsection{Forbearance and Refinancing Gap in Minorities}
+\label{sec:forbearance_minorities}
+
+The existing literature documents substantial racial disparities in mortgage refinancing. \citet{gerardi2023mortgage}, studying the refinancing wave after the Global Financial Crisis, show that roughly 80\% of the Black--White refinancing gap can be explained by observable borrower and loan characteristics. However, when the same approach is applied to the COVID-19 refinancing wave, \citet{gerardi2021racial} find that these observables account for only about 20\% of the refinancing gap. This suggests that the majority of racial disparities in refinancing during the pandemic remain unexplained by traditional covariates.   
+
+Motivated by this gap, I examine the role of forbearance participation as a complementary mechanism behind the racial refinancing disparity. \hyperref[tab:minority_gap]{Table~\ref*{tab:minority_gap}} presents linear probability model estimates for GSE and FHA borrowers.  
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:minority_gap]{Table~\ref*{tab:minority_gap}} about here]}
+\bigskip
+
+Comparing columns (2) and (3) of Table~\ref{tab:minority_gap}, the estimated refinancing gap for Black borrowers in the GSE sample declines from $-2.87$ to $-2.64$ percentage points once forbearance participation is added on top of the other controls. Similarly, in the FHA sample the gap shrinks from $-2.91$ in column (5) to $-2.48$ in column (6). These reductions correspond to approximately 8\% of the original Black--White refinancing gap in the GSE sample and 15\% in the FHA sample. These results indicate that forbearance participation explains a meaningful share of the racial refinancing gap during the COVID-19 refinancing wave. While far from exhaustive, this mechanism complements the findings of \citet{gerardi2021racial} by showing that, beyond the limited 20\% explained by standard observables, forbearance is an additional driver of the observed racial refinancing disparity.
+ 
+
+
+
+\subsection{Refinancing After Exiting Forbearance} \Javad{Exiting is clearly endogenous!}
+
+In this section, I examine the refinancing behavior of borrowers after they exit forbearance by estimating both dynamic and aggregated event-study models using the same interaction-weighted estimator in \hyperref[sec:event_study]{Section~\ref{sec:event_study}}. In this specification, the event time is redefined relative to the first quarter in which a borrower exits forbearance. The results, presented in \hyperref[fig:event_study_race]{Figure~\ref*{fig:event_study_race}}, show that none of the post-exit event-time coefficients are statistically significant for either GSE or FHA borrowers. The aggregated effect over the first four quarters after forbearance exit is likewise insignificant. These findings suggest that, conditional on exiting forbearance, borrowers refinance at rates similar to those of the control group. This pattern is consistent with the interpretation that the reduced refinancing activity observed during forbearance mainly reflects program-imposed constraints rather than persistent differences in refinancing ability due to unobservable borrower characteristics.
+
+
+\bigskip
+\centerline{\bf [Place \hyperref[fig:event_study_after_forb]{Figure~\ref*{fig:event_study_after_forb}} about here]}
+\bigskip
+
+
+\label{sec:further_analysis}
+
+
+\section{Robustness Check} \label{sec:Robustness}
+
+\subsection{Logistic Regression}
+
+\subsection{Cox Proportional Hazard Regression}
+
+No left censoring 
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:logit_prepayment]{Table~\ref*{tab:logit_prepayment}} about here]}
+\bigskip
+
+
+
+
+\subsection{Addressing Selection Bias}
+
+One of the primary concerns when identifying the causal effect of forbearance on mortgage prepayment is violation of conditional independence. In this case, even after conditioning on a set of observed covariates, treatment assignment is correlated with potential outcomes. For instance, unobserved shock to borrowers' future income expectations may influence both the decision to enter forbearance and the likelihood of refinancing or prepaying a mortgage. In this section, I assess robustness of treatment effect to the presence of conditional dependence, using well-known method by \citet{oster2019}. As required in the paper, I collapse panel dataset, so that the outcome variable is the mortgage is prepaid as of the end of 2021.
+
+% , as well as its modified version proposed by \citet{diegert2022assessing}. In both cases, I collapse panel dataset, so that the outcome variable is the mortgage is prepaid as of the end of 2021.  
+
+
+ The sensitivity analysis uses the movement of regression coefficients and R-squared values between models with and without controls. The method assumes that selection on unobservables is proportional to selection on observables and provides a bias-adjusted treatment effect estimate given a specified maximum \( R^2 \) value. The adjusted coefficient \( \beta^* \) is computed as:
+\[
+\beta^* = \tilde{\beta} - \delta \cdot (\tilde{\beta} - \mathring{\beta}) \cdot \frac{R_{\max} - \tilde{R}}{\tilde{R} - \mathring{R}}
+\]
+where \( \mathring{\beta} \) and \( \mathring{R} \) are the coefficient and \( R^2 \) from the uncontrolled regression, and \( \tilde{\beta} \) and \( \tilde{R} \) are from the regression with observed covariates controlled. \( R^2_{\text{max}} \) is the assumed maximum \( R^2 \) achievable if both observed and unobserved covariates were included, and \( \delta \) reflects the relative strength of selection on unobservables compared to observables. \citet{oster2019} applies her method with assumption of \( R^2_{\text{max}} = 1.3\tilde{R} \) and \( R^2_{\text{max}} = 2\tilde{R} \) on a sample of economics papers. The sample includes 76 results from 27 articles published in the American Economic Review, Quarterly Journal of Economics, Econometrica, and the Journal of Political Economy during 2008–2010 and 2011–2013, each with at least 20 and 10 citations. She shows that the sign of estimated effect in about 43\% of the results is changed when \( R^2_{\text{max}} = 1.3\tilde{R} \).\footnote{~This cutoff is obtained from a sample of randomized articles, also from top journals, which would allow at least 90\% of randomized results to survive. } This ratio sharply increases to 73\% when assuming \( R^2_{\text{max}} = 2\tilde{R} \), suggesting this cutoff as a stringent benchmark.  \hyperref[fig:Oster_delta]{Figure~\ref*{fig:Oster_delta}} presents the estimated bound for treatment effect over a range of \( \delta \).  
+
+\bigskip
+\centerline{\bf [Place \hyperref[fig:Oster_delta]{Figure~\ref*{fig:Oster_delta}} about here]}
+\bigskip
+
+Panels (a) and (b) display the estimated treatment effect bounds over a range of values for the selection parameter \( \delta \), under the conservative assumption that controlling for the full set of unobservables would double the regression’s \(R^2\). The graphs start from point estimates of \(-11.1\%\) and \(-22.6\%\) at \( \delta = 0 \) for the GSE and FHA samples, respectively. In both panels, the estimated bounds remain negative across the entire range of conditional dependence, indicating that the adverse effect of entering forbearance is robust to a wide degree of confounding due to self-selection. Specifically, even under the rigorous assumption that unobservables are as important as all observed covariates (\(\delta\) close to 1), the estimated negative treatment effect is reduced by only about 20\% in the GSE sample and 50\% in the FHA sample. At the commonly used benchmark of \(\delta = 1.3\), the reductions are just 7\% and 14\%, respectively.
+
+ Panels (c) and (d) plot the breakdown value of \( \delta \) as a function of the assumed \( R^2_{\text{max}} \). In both panels, the upper and lower horizontal lines mark the breakdown thresholds for \( \delta \) under the commonly used benchmarks \( R^2_{\text{max}} = 1.3\tilde{R} \) and \( R^2_{\text{max}} = 2\tilde{R} \), respectively. As the figures show, the breakdown values of \( \delta \) are far above the benchmark of \( \delta = 1 \). For the GSE sample, the thresholds are approximately 16.7 and 5.2 under the two benchmarks for \( R^2_{\text{max}} \), while for the FHA sample the corresponding thresholds are about 3.4 and 1.5. These values indicate that unobservables would need to be several times more important than observables in driving forbearance decision in order to overturn the negative treatment effects.
+
+
+ 
+
+\begin{comment}
+
+\subsubsection{Diegert, Masten, and Poirier (2022): Sensitivity Bounds Without Orthogonality Assumptions}
+\citet{diegert2022assessing} address a central assumption in \citet{oster2019}: omitted variables are uncorrelated with the included controls. They also formally show that her residualization method is misleading if unobservables are not orthogonal to observables. The paper overcomes these shortcomings by introducing a new framework that defines sharp bounds on the treatment effect using three interpretable scalar sensitivity parameters:
+
+\begin{enumerate}
+  \item \textbf{\( \bar{r}_X \)}: The maximum partial \( R^2 \) that unobservables can have with the treatment variable, after conditioning on observed covariates.
+  
+  \item \textbf{\( \bar{r}_Y \)}: The maximum partial \( R^2 \) that unobservables can have with the outcome variable, again conditional on observed covariates. This parameter is usually assumed to be infinity, which means allowing the unobservables to explain all the remaining variance in the outcome not explained by the observed covariates.
+  
+  \item \textbf{\( \bar{c} \)}: The maximum allowable partial correlation between the residuals of the treatment and outcome equations (after controlling for observables). This captures the remaining endogeneity attributable to unobserved confounding.
+\end{enumerate}
+
+By varying these parameters, the method computes bounds for the treatment effect and identifies breakdown point. 
+
+
+\bigskip
+\centerline{\bf [Place \hyperref[fig:dmp]{Figure~\ref*{fig:dmp}} about here]}
+\bigskip
+
+The point estimate is again -10.7\%. Panel (a) of \hyperref[fig:dmp]{Figure~\ref*{fig:dmp}} displays the bounds on the treatment effect over the maximum partial correlation parameter \( \bar{c} \). The bounds cross zero at \( \bar{r}_X = 27.7\% \) and remain robust across the full range of \( \bar{c} \), as evident in Panel (b). Recall that the observed covariates explain only 4.4\% of the variation in the treatment variable. This implies that unobserved variables would need to explain approximately six times more variation in treatment than the observed variables to overturn the negative treatment effect. 
+
+\end{comment}
+
+\subsection{Immortal Bias}
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:immortal]{Table~\ref*{tab:immortal}} about here]}
+\bigskip
+
+
+
+\clearpage
+
+% Bibliography.
+
+\begin{doublespacing}   % Double-space the bibliography
+\bibliographystyle{jf}
+\bibliography{references}
+\end{doublespacing}
+
+\clearpage
+
+% Print end notes
+% \renewcommand{\enotesize}{\normalsize}
+% \begin{doublespacing}
+%   \theendnotes
+% \end{doublespacing}
+
+\appendix
+
+% Note that you should manually add the code between \multicolumn{1}{l}{N} ....   \multicolumn{1}{r}{0.20 (4.48)} \cline{1-6} from module to here.  
+
+\section{Variable Selection}
+\label{appendix:lasso}
+The NSMO dataset is inherently a high-dimensional survey, containing over 180 potential covariates after data processing. While economic intuition can propose a set of variables that will explain part of refinancing variation, the selection process among the rest of variables is not so straightforward. On the other had, including all available covariates in a regression may introduce noise to the estimation (\citet{belloni2014inference}). To address these challenge, I adopt a semi-penalized LASSO-logit procedure introduced by \citet{belloni2016post}. Their model relies on the assumption of approximate sparsity, meaning that treatment assignment can be assumed conditionally exogenous by controlling for a smaller but \textit{a priori unknown} subset of  of covariates.
+
+
+The variable selection includes three steps. The first step runs a logistic regression with forbearance indicator as dependent variable. The main goal is to alleviate the risk of confounding the treatment by identifying variables that best predict forbearance. The second step implements a separate but similar logistic regression that identifies variables predictive of refinancing in order to reduce residual variance and find additional confounders. For both regressions, there are two groups of covariates to be selected. The first group is a common baseline of unpenalized controls—shown in Panel A and B of \hyperref[tab:description]{Table~\ref*{tab:description}}—that comprises the union of the most relevant predictors identified in the literature for both refinancing and forbearance take-up. The second group is selected separately in each regression by applying an $\ell_1$ (LASSO) penalty over all remained covariates. The LASSO penalty shrinks coefficient estimates toward zero, and for sufficiently large penalty levels, it sets some coefficients exactly to zero. This property makes LASSO particularly well suited for achieving sparsity high-dimensional settings.\footnote{~To satisfy i.i.d. assumption in \citet{belloni2014inference, belloni2016post} and avoid within-borrower time-series dependence, I collapse the panel structure into a cross-sectional format by averaging all time-varying covariates over the pre-2020 period.} 
+
+
+For penalization, I use \textit{rigorous penalization hyperparameter}, proposed in \citet{belloni2016post}. The penalty is defined as
+\[
+\lambda = \frac{c}{2\sqrt{N}} \Phi^{-1}(1 - \gamma),
+\]
+
+with 
+\[
+\gamma = \frac{0.05}{\max(p \log n, n)}
+\]
+
+where $c$ is a slack parameter (defaulting to 1.1), $N$ is the number of observations, $\Phi(\cdot)$ denotes the standard normal cumulative distribution function, and $\gamma$ is a significance level. $p$ is the number of input variables and $n$ is asymptotic sample size.\footnote{While \(n\) typically denotes the asymptotic sample size in theoretical rate conditions and \(N\) the actual sample size used in estimation, they are usually considered the same implementation wise.} The rigorous penalization helps to avoid the ad hoc variable selection. 
+
+
+In the final step, I control the union of benchmark unpenalized and LASSO-selected variables in \hyperref[equation:baseline_outcome]{Equation~\ref{equation:baseline_outcome}}.
+
+
+\section{75 Basis Points Rate Gap for Refinancing}
+ \label{sec:75bps}
+ 
+In previous analyses, I exploited positive rate gap as a benchmark for separating refinancing from other types of terminations.  In this section, I impose a more conservative threshold of 75 basis points. This threshold reflects a commonly used benchmark by practitioners in the mortgage market for at which refinancing becomes financially attractive after accounting for refinancing costs such as fees and transaction costs. The following table presents the results of estimating  \hyperref[baseline_outcome]{Equation (\ref*{equation:baseline_outcome})} with the alternative refinancing indicator. 
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:immortal]{Table~\ref*{tab:lpm_prepayment_75bps}} about here]}
+\bigskip
+
+
+\section{Using Closed-Form Refinancing Threshold for Call Option Value}
+
+\label{appendix:ADL}
+
+To ensure the treatment effect is not driven by the specific way refinancing incentive is measured, I replace \citet{deng2000mortgage} refinancing call option meaure with two alternative proxies and re-estimate \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}.
+
+\subsection{Refinancing with Full Attention}
+For the first alternative call option proxy, I follow the closed-form threshold rule proposed by \citet{agarwal2013optimal}, henceforth ADL. In this framework, the borrower balances saving from locking in a lower mortgage rate against the costs of refinancing. Because refinancing resets the strike price of future refinancing opportunities, the borrower faces a trade-off between acting now and preserving the option to refinance later. The formal definition of the optimal interest rate differential threshold is:
+\begin{equation}
+x^* = \frac{1}{\psi} \left[ \phi + W \left( - e^{ - \phi } \right) \right],
+\end{equation}
+where $W(\cdot)$ is the principal branch of the Lambert-$W$ function, and
+\begin{align*}
+\psi &= \sqrt{ \frac{ 2(\rho + \zeta) }{ \sigma^2 } }, \\
+\phi &= 1 + \psi \cdot (\rho + \zeta) \cdot \frac{ \kappa/M }{ 1 - \tau }, \\
+\zeta &= \mu + \left( \frac{ p_{\text{nominal}} }{ M_{\text{nominal}} } - i_0 \right) + \pi.
+\end{align*}
+
+In this expression, $\rho$ denotes the discount rate, and $\sigma$ is the volatility of mortgage rates. The prepayment hazard $\zeta$ combines the turnover hazard $\mu$, the amortization effect, and expected inflation $\pi$, reflecting the effective rate at which the mortgage obligation declines. The refinancing cost $\kappa$ includes both fixed and variable components and is adjusted for tax deductibility through the tax rate $\tau$.
+
+
+I calibrate this model using two specifications. In the first, I follow \citet{agarwal2013optimal} and use time-invariant parameters. In the second, I adopt a dynamic calibration strategy by exploiting borrower- and time-specific variables to better capture market conditions. \hyperref[tab:calibration]{Table~\ref*{tab:calibration}} summarizes the parameters for both calibrations.
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:calibration]{Table~\ref*{tab:calibration}} about here]}
+\bigskip
+
+In both calibrations, I set the discount rate $\rho$ to 5\%. The volatility parameter $\sigma$ is either fixed at 10\% or computed dynamically as the rolling 10-year standard deviation of the Freddie Mac Primary Mortgage Market Survey (PMMS) mortgage rate. The marginal tax rate $\tau$ is set at 28\% in the static calibration, while in the dynamic version it corresponds to annually updated U.S. income tax brackets. The inflation expectation $\pi$ is fixed at 3\% in the static calibration and replaced with the University of Michigan Survey of Consumers' inflation expectations in the dynamic calibration.
+
+The refinancing cost $\kappa$ is consistently specified as a fixed fee of \$2,000 plus 1\% of the outstanding loan balance. For the prepayment hazard $\mu$, I assume a constant 10\% annual rate in the static calibration, while in the dynamic calibration I use the average of annual turnover rates from 2013 to 2022.
+
+
+\subsection{Refinancing with Inattention}
+
+While the ADL model assumes perfectly attentive borrowers, recent work by \citet{berger2024optimal} introduces inattention into the refinancing decision. In their framework, borrowers observe refinancing opportunities at random intervals determined by an attention rate $\lambda$. When attentive, borrowers rationally refinance if their rate gap exceeds an optimal threshold $\theta$ derived from a stochastic control problem that accounts for inattention.
+
+The Berger model modifies the ADL threshold by systematically lowering it as attention frictions increase. Formally, when mortgage rates follow a Brownian motion, the refinancing threshold under inattention is expressed as:
+\begin{equation}
+\theta = (\rho + \nu)\psi + \frac{1}{\eta_0 + \epsilon_\lambda} + \frac{1}{\eta_0} W\left(-\frac{\eta_0}{\eta_0 + \epsilon_\lambda} e^{ -\frac{\eta_0}{\eta_0 + \epsilon_\lambda} \left[ 1 + (\rho + \nu)(\eta_0 + \epsilon_\lambda) \psi \right]} \right),
+\end{equation}
+
+In this expression, $\nu$ denotes the exogenous moving hazard. The parameters $\eta_0$ and $\eta_\lambda$ are volatility-adjusted hazard rates, defined respectively as:
+\begin{align*}
+\eta_0 &= \frac{ \sqrt{ 2 (\rho + \nu) } }{ \sigma }, \\
+\eta_\lambda &= \frac{ \sqrt{ 2 (\rho + \nu + \lambda) } }{ \sigma },
+\end{align*}
+where $\lambda$ is the inattention rate — the intensity at which borrowers observe and consider refinancing opportunities. The parameter $\epsilon_\lambda$ is a function of these terms and measures the attention-adjusted spread cost:
+\[
+\epsilon_\lambda = \frac{ (\rho + \nu)(\eta_0 + \eta_\lambda) }{ \lambda }.
+\]
+
+As the attention rate $\lambda$ increases, borrowers observe opportunities more frequently, and the threshold $\theta$ converges to the ADL benchmark. The remaining parameters — $\rho$, $\sigma$, $\psi$, $\kappa$, $\tau$, and $\pi$ — are defined similar to ADL model.
+
+
+Most of the calibration parameters presented in column (3) of \hyperref[tab:calibration]{Table~\ref*{tab:calibration}} are similar to the dynamic version of ADL in column (2). Parameter $\nu$ is computed as the average quarterly rate of loan termination in negative rate gap during 2013 to 2022. Unlike ADL model, I follow \citet{berger2024optimal} and define refinancing cost equal to 2\% of the outstanding loan balance.    
+
+\subsection{Regression Analysis Using Alternative Call Option Proxies}
+
+I define the refinancing call option value as the difference between the observed mortgage rate differential and the model-implied optimal threshold (\citet{fuster2019role}; \citet{gerardi2023mortgage}). 
+\[
+\text{Call Option Value}_{it} = \text{Rate Differential}_{it} -  \text{Refinancing Threshold}_{it}.
+\]
+Using this alternative call option value proxy, I re-estimate \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})} as follows:
+
+\bigskip
+\centerline{\bf [Place \hyperref[tab:adl_dynamic]{Table~\ref*{tab:adl_dynamic}} about here]}
+\bigskip
+
+Consistent with \citet{deng2000mortgage} call option measure, all alternative call option proxies are also positive and highly significant. In GSE and FHA sample, one percentage point higher call option value corresponds with approximately 2.35\%, 2.18\%, and 4.39\%  increase in likelihood of refinancing for both ADL and Berger call option values respectively. The same pattern also hold in FHA sample. As we can see in all columns, the estimated coefficient for forbearance dummy remains almost similar to the reported results in \hyperref[tab:lpm_prepayment]{Table~\ref*{tab:lpm_prepayment}}, confirming robustness of the identified treatment effect.   
+
+
+\clearpage
+\section{Tables}
+
+
+\begin{table}[!h]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Variable Description}
+\label{tab:description}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table summarizes all variables used in the analysis, drawn from the National Survey of Mortgage Originations (NSMO). Variables are grouped into three categories: time-invariant characteristics measured at loan origination, time-varying borrower outcomes and market conditions, and borrower-reported variables unique to the NSMO. Variable in Panel C are selected via a Double Selection LASSO-Logit regression.
+\end{minipage}
+
+\vspace{1em}
+
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lp{11cm}}
+\toprule
+\textbf{Variable} & \textbf{Description} \\
+\midrule
+\multicolumn{2}{l}{\textbf{Panel A: Time-Invariant Variables}} \\
+\midrule
+\textit{Performance Suppress Experience (\%)} & Indicator for whether the borrower's performance record was ever suppressed during 2020 and 2021. \\
+\textit{90+ DPD Experience Before 2020 (\%)} & Indicator for having experienced 90+ days past due delinquency before 2020. \\
+\textit{Age} & Age of the primary borrower in years. \\
+\textit{Female (\%)} & Indicator for female borrower. \\
+\textit{Loan Rate (bps)} & Original interest rate on the loan, expressed in basis points. \\
+\textit{Rate Spread (bps)} & Spread of the loan's interest rate above PMMS rate. \\
+\textit{Credit Score at Orig} & Borrower’s credit score at loan origination. \\
+\textit{LTV (\%)} & Loan-to-value ratio at origination. \\
+\textit{Debt-to-Income Ratio (\%)} & Ratio of monthly debt payments to monthly income at origination. \\
+\textit{Refinance Loans (\%)} & Indicator for whether the loan was originated as a refinance. \\
+\textit{Married (\%)} & Indicator for marital status of the borrower. \\
+\textit{Co-applicant (\%)} & Indicator for presence of a co-borrower. \\
+\textit{Income (\$)} & Household income at origination. \\
+\textit{Loan Balance (\$)} & Outstanding loan balance. \\
+\textit{Race/Ethnicity} & Indicators for borrower’s race/ethnicity: Hispanic, White Non-Hispanic, Black, Asian, and Other races/ethnicities. \\
+\midrule
+\multicolumn{2}{l}{\textbf{Panel B: Time-Variant Variables}} \\
+\midrule
+\textit{Loan Age} & Number of quarters since loan origination. \\
+\textit{Credit Score} & VantageScore 3.0 credit score at origination. \\
+\textit{Credit Score Change} & Change in VantageScore 3.0 credit score since origination. \\
+\textit{Call Option (\%)} & \citet{deng2000mortgage} call option value. \\
+\textit{Mark-to-Market LTV (\%)} & Mark to market loan to value. \\
+\midrule
+\multicolumn{2}{l}{\textbf{Panel C: NSMO-Specific Variables By Double-Selection Method}} \\
+\midrule
+\textit{Familiarity: The Mortgage Process} & X05C: When you began the process of getting this mortgage, how familiar were you with the Mortgage Process? \\
+\textit{Familiarity: The income for qualification} & X05E: When you began the process of getting this mortgage, how familiar were you with the income needed for qualification?  \\
+\textit{Familiarity: The money needed at closing} & X05G: When you began the process of getting this mortgage, how familiar were you with the money needed at closing?  \\
+\textit{Bank Advice Usage} & X08H: How much did the borrower use credit unions or financial planners to get information about mortgages or mortgage lenders? \\
+\textit{Applied Through} & X10: Which one of the following best describes how you applied for this mortgage? Directly to a lender, through a broker, through a builder. \\
+\textit{Awareness: Interest Only Mortgages} & X23F: During the application process were you told about interest only mortgages? \\
+\textit{Satisfaction: Mortgage Term} & X27A: Overall, how satisfied are you with your mortgage term? \\
+\textit{Satisfaction: Mortgage Rate} & X27B: Overall, how satisfied are you with your mortgage rate? \\
+\textit{Personal Attorney} & X50D: Indicator for whether the borrower seek input about closing documents from a personal attorney. \\
+\textit{Rent Out Plan
+} & X63: Do you rent out all or any portion of this property?\\
+\textit{House Price Change Experience} & X68E: In the last couple years, how have house price changed in the neighborhood where this property is located. \\
+\textit{Self Employed} & X85B: Does your total annual household income include Business or self-employment? \\
+\textit{Added Non-Partner Member} & X89D: Has anyone added to the household (not including spouse/partner) since the couple of years before origination. \\
+\textit{Started A New Job} & X90D: In the last couple of years, have 
+you or your spouse/partner starting a new job? \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\FloatBarrier
+
+
+
+\begin{table}[!h]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Sample Restriction}
+\label{tab:sample_restriction}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table summarizes all restrictions imposed in constructing the final sample from the NSMO dataset. Most of the restrictions follow the approach of \citet{fuster2022predictably}. The number of excluded and remaining loans is reported at each stage of data processing. Exclusions are applied sequentially, following the structure of the cleaning procedure.
+\end{minipage}
+
+\vspace{1em}
+\centering
+\begin{tabular}{p{10cm}cc}
+\toprule
+
+
+\textbf{Sample Restriction:} & \textbf{\# Loans Dropped} & \textbf{\# Loans Remaining} \\
+\midrule
+Full Sample between 2013Q1 and 2023Q3         &         & 50,542 \\
+Number of Borrowers $\leq$   2      &       222  & 50,320 \\
+Only Purchase or Refinance Loans      &       1,928  & 48,392 \\
+No Missing Mark to Market Loan to Value & 20 &  48,372 \\
+No Mortgage Termination Before 2020 & 12,439 & 35,933 \\
+Available Updated Credit Score & 569 & 35,364 \\
+Term = 30 years                                  &     9,492    &    25,872      \\
+Fixed Rate Loans                                 &    2,610     &     23,262     \\
+Only Conventional, and FHA Mortgages                                &    3,311     &     19,951     \\
+First Liens                                      &     371    &      19,580    \\
+20 $\leq$ LTV $\leq$ 100                         &    293     &       19,287  \\
+No Jumbo Mortgages  &    747     &        18,540   \\
+2 \% $\leq$ Loan Rate $\leq$ 8 \%                         &    33     &       18,507  \\
+No Balloon Mortgage             &  124  &  18,383  \\
+No Prepayment Penalty     &   381     &        18,002   \\
+Only Prepayments Due to Refinance     &   349     &        17,653   \\
+Seasoning $\geq$ 6 Months at the beginning of 2020                      & 6,658  & 10,995 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+
+
+\begin{table}[!h]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Summary Statistics}
+\label{tab:sumstat}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports summary statistics for GSE and FHA loans from the National Survey of Mortgage Originations (NSMO), restricted to mortgages originated before 2020. The unit of observation is a loan in Panel A and a loan-quarter in Panel B. Panel A presents summary statistics of time-invariant borrower and loan characteristics. Panel B reports summary statistics of time-varying variables used in the analysis. All variable definitions are provided in Table~\ref*{tab:description}. ``SATO'' is the rate spread over the Primary Mortgage Market Survey (PMMS) rate at origination. The ``Call Option'' variable, constructed following \citet{deng2000mortgage}, measures the refinancing incentive. ``Credit Score Change'' is the borrower’s change in VantageScore 3.0 since origination, lagged by one quarter.
+
+\end{minipage}
+
+\vspace{1em}
+
+
+
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lccccc} % ← 6 columns now
+\toprule
+
+ & \multicolumn{2}{c}{non-forborne Sample} & \multicolumn{2}{c}{Forbearance Sample} & \multicolumn{1}{c}{} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+ & GSE & FHA & GSE & FHA & Total \\
+\midrule
+\multicolumn{6}{l}{\textit{Panel A: Time-Invariant Characteristics }} \\
+\midrule
+
+\multicolumn{1}{l}{N} &
+  \multicolumn{1}{r}{8,391 (76.3\%)} &
+  \multicolumn{1}{r}{1,613 (14.7\%)} &
+  \multicolumn{1}{r}{678 (6.2\%)} &
+  \multicolumn{1}{r}{313 (2.8\%)} &
+  \multicolumn{1}{r}{10,995 (100.0\%)} \\
+\multicolumn{1}{l}{Performance Suppress Experience (\%)} &
+  \multicolumn{1}{r}{0.92 (9.54)} &
+  \multicolumn{1}{r}{2.11 (14.37)} &
+  \multicolumn{1}{r}{30.97 (46.27)} &
+  \multicolumn{1}{r}{56.23 (49.69)} &
+  \multicolumn{1}{r}{4.52 (20.78)} \\
+\multicolumn{1}{l}{90+ DPD Experience Before 2020 (\%)} &
+  \multicolumn{1}{r}{0.38 (6.16)} &
+  \multicolumn{1}{r}{2.36 (15.17)} &
+  \multicolumn{1}{r}{2.80 (16.52)} &
+  \multicolumn{1}{r}{10.54 (30.76)} &
+  \multicolumn{1}{r}{1.11 (10.48)} \\
+\multicolumn{1}{l}{SATO (bps)} &
+  \multicolumn{1}{r}{25 (42)} &
+  \multicolumn{1}{r}{-8 (40)} &
+  \multicolumn{1}{r}{31 (44)} &
+  \multicolumn{1}{r}{-2 (45)} &
+  \multicolumn{1}{r}{20 (44)} \\
+\multicolumn{1}{l}{Loan Rate (bps)} &
+  \multicolumn{1}{r}{425 (54)} &
+  \multicolumn{1}{r}{410 (54)} &
+  \multicolumn{1}{r}{432 (56)} &
+  \multicolumn{1}{r}{420 (56)} &
+  \multicolumn{1}{r}{423 (55)} \\
+\multicolumn{1}{l}{Quarters in Forbearance} &
+  \multicolumn{1}{r}{--} &
+  \multicolumn{1}{r}{--} &
+  \multicolumn{1}{r}{2.33 (1.96)} &
+  \multicolumn{1}{r}{3.02 (2.05)} &
+  \multicolumn{1}{r}{0.23 (0.95)} \\
+\multicolumn{1}{l}{Credit Score at Orig} &
+  \multicolumn{1}{r}{758 (54)} &
+  \multicolumn{1}{r}{693 (61)} &
+  \multicolumn{1}{r}{737 (62)} &
+  \multicolumn{1}{r}{670 (61)} &
+  \multicolumn{1}{r}{745 (62)} \\
+\multicolumn{1}{l}{LTV (\%)} &
+  \multicolumn{1}{r}{75 (16)} &
+  \multicolumn{1}{r}{92 (9)} &
+  \multicolumn{1}{r}{76 (15)} &
+  \multicolumn{1}{r}{93 (8)} &
+  \multicolumn{1}{r}{78 (16)} \\
+\multicolumn{1}{l}{Debt-to-Income Ratio (\%)} &
+  \multicolumn{1}{r}{35 (11)} &
+  \multicolumn{1}{r}{41 (12)} &
+  \multicolumn{1}{r}{38 (12)} &
+  \multicolumn{1}{r}{44 (11)} &
+  \multicolumn{1}{r}{36 (12)} \\
+\multicolumn{1}{l}{Income (\$)} &
+  \multicolumn{1}{r}{105,798 (45,736)} &
+  \multicolumn{1}{r}{83,027 (39,259)} &
+  \multicolumn{1}{r}{104,251 (47,227)} &
+  \multicolumn{1}{r}{80,990 (37,563)} &
+  \multicolumn{1}{r}{101,656 (45,567)} \\
+\multicolumn{1}{l}{Loan Balance (\$)} &
+  \multicolumn{1}{r}{221,300 (103,402)} &
+  \multicolumn{1}{r}{174,799 (82,988)} &
+  \multicolumn{1}{r}{229,978 (103,458)} &
+  \multicolumn{1}{r}{183,067 (89,183)} &
+  \multicolumn{1}{r}{213,925 (101,800)} \\
+\multicolumn{1}{l}{Hispanic (\%)} &
+  \multicolumn{1}{r}{6 (24)} &
+  \multicolumn{1}{r}{12 (33)} &
+  \multicolumn{1}{r}{10 (30)} &
+  \multicolumn{1}{r}{18 (38)} &
+  \multicolumn{1}{r}{8 (26)} \\
+\multicolumn{1}{l}{White Nonhispanic (\%)} &
+  \multicolumn{1}{r}{81 (39)} &
+  \multicolumn{1}{r}{69 (46)} &
+  \multicolumn{1}{r}{70 (46)} &
+  \multicolumn{1}{r}{50 (50)} &
+  \multicolumn{1}{r}{78 (41)} \\
+\multicolumn{1}{l}{Black (\%)} &
+  \multicolumn{1}{r}{4 (21)} &
+  \multicolumn{1}{r}{13 (34)} &
+  \multicolumn{1}{r}{9 (28)} &
+  \multicolumn{1}{r}{27 (44)} &
+  \multicolumn{1}{r}{7 (25)} \\
+\multicolumn{1}{l}{Asian (\%)} &
+  \multicolumn{1}{r}{5 (22)} &
+  \multicolumn{1}{r}{2 (13)} &
+  \multicolumn{1}{r}{8 (27)} &
+  \multicolumn{1}{r}{2 (15)} &
+  \multicolumn{1}{r}{5 (21)} \\
+\multicolumn{1}{l}{All Other Races/Ethnicities (\%)} &
+  \multicolumn{1}{r}{3 (17)} &
+  \multicolumn{1}{r}{4 (19)} &
+  \multicolumn{1}{r}{3 (17)} &
+  \multicolumn{1}{r}{3 (18)} &
+  \multicolumn{1}{r}{3 (17)} \\
+\multicolumn{1}{l}{Refinance Loans (\%)} &
+  \multicolumn{1}{r}{37 (48)} &
+  \multicolumn{1}{r}{26 (44)} &
+  \multicolumn{1}{r}{42 (49)} &
+  \multicolumn{1}{r}{22 (42)} &
+  \multicolumn{1}{r}{35 (48)} \\
+\multicolumn{1}{l}{Age} &
+  \multicolumn{1}{r}{49 (14)} &
+  \multicolumn{1}{r}{44 (13)} &
+  \multicolumn{1}{r}{48 (13)} &
+  \multicolumn{1}{r}{42 (12)} &
+  \multicolumn{1}{r}{48 (14)} \\
+\multicolumn{1}{l}{Female (\%)} &
+  \multicolumn{1}{r}{48 (50)} &
+  \multicolumn{1}{r}{54 (50)} &
+  \multicolumn{1}{r}{46 (50)} &
+  \multicolumn{1}{r}{56 (50)} &
+  \multicolumn{1}{r}{49 (50)} \\
+\multicolumn{1}{l}{Married (\%)} &
+  \multicolumn{1}{r}{65 (48)} &
+  \multicolumn{1}{r}{56 (50)} &
+  \multicolumn{1}{r}{65 (48)} &
+  \multicolumn{1}{r}{53 (50)} &
+  \multicolumn{1}{r}{63 (48)} \\
+\multicolumn{1}{l}{Co-applicant (\%)} &
+  \multicolumn{1}{r}{51 (50)} &
+  \multicolumn{1}{r}{40 (49)} &
+  \multicolumn{1}{r}{45 (50)} &
+  \multicolumn{1}{r}{35 (48)} &
+  \multicolumn{1}{r}{48 (50)} \\
+
+
+\midrule
+\multicolumn{6}{l}{\textit{Panel B: Time-Varying Characteristics}} \\
+\midrule
+
+\multicolumn{1}{l}{N} &
+  \multicolumn{1}{r}{48,494 (74.2\%)} &
+  \multicolumn{1}{r}{9,726 (14.9\%)} &
+  \multicolumn{1}{r}{4,769 (7.3\%)} &
+  \multicolumn{1}{r}{2,345 (3.6\%)} &
+  \multicolumn{1}{r}{65,334 (100.0\%)} \\
+\multicolumn{1}{l}{Market 30Y-Mortgage Rate (bps)} &
+  \multicolumn{1}{r}{307 (25)} &
+  \multicolumn{1}{r}{325 (28)} &
+  \multicolumn{1}{r}{305 (24)} &
+  \multicolumn{1}{r}{323 (27)} &
+  \multicolumn{1}{r}{310 (26)} \\
+\multicolumn{1}{l}{Available Rate (bps)} &
+  \multicolumn{1}{r}{333 (56)} &
+  \multicolumn{1}{r}{328 (49)} &
+  \multicolumn{1}{r}{338 (65)} &
+  \multicolumn{1}{r}{334 (52)} &
+  \multicolumn{1}{r}{332 (54)} \\
+\multicolumn{1}{l}{Refinance Dummy (\%)} &
+  \multicolumn{1}{r}{9.75 (29.67)} &
+  \multicolumn{1}{r}{8.89 (28.47)} &
+  \multicolumn{1}{r}{4.70 (21.16)} &
+  \multicolumn{1}{r}{2.94 (16.90)} &
+  \multicolumn{1}{r}{9.01 (28.64)} \\
+\multicolumn{1}{l}{Loan Age} &
+  \multicolumn{1}{r}{18.82 (7.65)} &
+  \multicolumn{1}{r}{18.91 (7.35)} &
+  \multicolumn{1}{r}{18.69 (7.45)} &
+  \multicolumn{1}{r}{19.00 (7.48)} &
+  \multicolumn{1}{r}{18.83 (7.59)} \\
+\multicolumn{1}{l}{Updated Credit Score} &
+  \multicolumn{1}{r}{771 (57)} &
+  \multicolumn{1}{r}{712 (74)} &
+  \multicolumn{1}{r}{735 (79)} &
+  \multicolumn{1}{r}{649 (86)} &
+  \multicolumn{1}{r}{755 (70)} \\
+\multicolumn{1}{l}{Credit Score Change} &
+  \multicolumn{1}{r}{11 (52)} &
+  \multicolumn{1}{r}{16 (68)} &
+  \multicolumn{1}{r}{-3 (67)} &
+  \multicolumn{1}{r}{-23 (78)} &
+  \multicolumn{1}{r}{10 (57)} \\
+\multicolumn{1}{l}{Mark-to-Market LTV (\%)} &
+  \multicolumn{1}{r}{53 (17)} &
+  \multicolumn{1}{r}{67 (14)} &
+  \multicolumn{1}{r}{56 (16)} &
+  \multicolumn{1}{r}{68 (14)} &
+  \multicolumn{1}{r}{56 (17)} \\
+\multicolumn{1}{l}{Call Option (\%)} &
+  \multicolumn{1}{r}{8.78 (4.99)} &
+  \multicolumn{1}{r}{7.68 (4.50)} &
+  \multicolumn{1}{r}{9.54 (4.83)} &
+  \multicolumn{1}{r}{8.87 (4.70)} &
+  \multicolumn{1}{r}{8.68 (4.92)} \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\FloatBarrier
+\clearpage
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Quarterly Share of Borrowers Entering Forbearance}
+\label{tab:forbearance_share}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports quarterly share of borrowers entering forbearance for GSE and FHA sample NSMO dataset after sample restriction. All data cleaning steps are presented in \hyperref[tab:sample_restriction]{Table~\ref{tab:sample_restriction}}.
+
+
+\end{minipage}
+
+\vspace{1em}
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Quarter} & \textbf{GSE Sample (\%)} & \textbf{FHA Sample (\%)} \\
+\midrule
+2020Q1 & 5.12 & 9.59 \\
+2020Q2 & 53.11 & 54.11 \\
+2020Q3 & 11.80 & 11.64 \\
+2020Q4 & 7.76 & 7.53 \\
+2021Q1 & 10.40 & 7.19 \\
+2021Q2 & 4.19 & 3.08 \\
+2021Q3 & 5.75 & 4.79 \\
+2021Q4 & 1.86 & 2.05 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+\begin{comment}
+    
+\begin{table}[!h]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Selected Variables in Semi-Penalized Lasso Logit Model}
+\label{tab:survival_output}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small 
+
+This table reports ten most frequently survived variables in a semi-penalized Lasso logit model estimated as in \hyperref[lasso]{Equation~(\ref*{lasso})}, with the dependent variable indicating mortgage refinancing. The dataset is collapsed to one observation per borrower and time-varying covariates are summarized by their average values over the pre-2020 period. Survival frequency denotes the number of times (out of 10,000 simulations) each variable was selected into the active set following penalization. All variable definitions are provided in Panel C of \hyperref[tab:description]{Table~\ref*{tab:description}}.
+
+\end{minipage}
+
+\vspace{1em}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{cc}
+\toprule
+\textbf{Variable Label} & \textbf{Survival Frequency (Out of 10,000)} \\
+\midrule
+House Price Change Experience & 8122 \\
+House Price Change Expectation & 6984\\
+Desirability of Living Change Experience  & 6431 \\
+Housing Counselor  & 6410 \\
+Insurance Agent Consultation  & 6310 \\
+Financial Crisis Experienced  & 5952 \\
+Added Non-Partner Member  & 5919 \\
+Starting A New Job  & 5915\\
+Loan Closing Process Satisfaction  & 5845\\
+Bank Advice Usage & 5792\\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\FloatBarrier
+
+\end{comment}
+
+
+
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Prepayment Results: Linear Probability Model}
+\label{tab:lpm_prepayment}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports estimates from a linear probability model (LPM) of voluntary mortgage prepayment as the dependent variable. The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(5) report results for GSE sample, and columns (6)–(10) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. The ``Call Option'' variable is constructed using the method of \citet{deng2000mortgage} and measures the incentive to refinance. ``Credit Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. All variables after ``SATO'' are NSMO-specific factors selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}. Standard errors are clustered at the borrower level. 
+
+\end{minipage}
+
+\vspace{1em}
+
+
+% Table body (resized to fit)
+\input{forb_and_prepayment_reghdfe}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Prepayment Results: Linear Probability Model with 1:1 Propensity Score Matching}
+\label{tab:lpm_prepayment}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports estimates from a linear probability model (LPM) of mortgage refinancing as the dependent variable. The sample is constructed by 1:1 propensity score matching.  The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(5) report results for GSE sample, and columns (6)–(10) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. The ``Call Option'' variable is constructed using the method of \citet{deng2000mortgage} and measures the incentive to refinance. ``Credit Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. All variables after ``SATO'' are NSMO-specific factors selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}. Standard errors are clustered at the borrower level. 
+
+\end{minipage}
+
+\vspace{1em}
+
+
+% Table body (resized to fit)
+\input{forb_and_prepayment_reghdfe_matched}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+% \begin{table}[htbp]
+% \captionsetup{justification=justified,singlelinecheck=false}
+% \footnotesize
+% \caption{:\ Prepayment Results: Borrowers with No Missing Payment}
+% \label{tab:immortal}
+% \vspace{0.5em}
+
+% \begin{minipage}{\textwidth}
+% \small
+% This table estimates the causal effect of forbearance on mortgage prepayment, excluding borrowers who entered forbearance after 2020Q2 and borrowers for whom the performance status has not changed to missing. The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(5) report results for GSE sample, and columns (6)–(10) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. The ``Call Option'' variable is constructed using the method of \citet{deng2000mortgage} and measures the incentive to refinance. ``Credit Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. All variables after ``SATO'' are NSMO-specific factors selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}. Standard errors are clustered at the borrower level. 
+
+% \end{minipage}
+
+% \vspace{1em}
+
+% % Table body (resized to fit)
+% \input{forb_and_prepayment_nosuppressed}
+
+% \end{table}
+% \FloatBarrier
+% \clearpage
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Refinancing Gap in Minority Groups: Linear Probability Model}
+\label{tab:minority_gap}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports estimates 
+
+\end{minipage}
+
+\vspace{1em}
+
+
+% Table body (resized to fit)
+\input{refinancing_gap_minority}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Prepayment Results: Linear Probability Model}
+\label{tab:lpm_prepayment_75bps}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports estimates from a linear probability model (LPM) of mortgage refinancing with the rate gap of 75 basis points as the dependent variable. The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(5) report results for GSE sample, and columns (6)–(10) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. The ``Call Option'' variable is constructed using the method of \citet{deng2000mortgage} and measures the incentive to refinance. ``Credit Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. All variables after ``SATO'' are NSMO-specific factors selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}. Standard errors are clustered at the borrower level. 
+
+\end{minipage}
+
+\vspace{1em}
+
+
+% Table body (resized to fit)
+\input{forb_and_prepayment_75bps}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Prepayment Results: ADL Call Option Value}
+\label{tab:adl_dynamic}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports estimates from a linear probability model (LPM) of mortgage refinancing with the ``Call Option'' variable is constructed using the method of \citet{agarwal2013optimal} and \citet{berger2024optimal}. The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(3) report results for GSE sample, and columns (4)–(6) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. ``Credit Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. ``Double Selection Vars'' refers to variables selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}.    Standard errors are clustered at the borrower level. 
+
+\end{minipage}
+
+\vspace{1em}
+
+
+% Table body (resized to fit)
+\input{forb_and_prepayment_adl}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+
+
+
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Aggregate Monetary Consequence of Refinancing Heterogeneity Due to Forbearance Program}
+\label{tab:aggregate_saving}
+
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table presents the aggregate extra annual mortgage payment due to forbearance-driven refinancing disparities. Market size is from 2023 Federal Reserve Z.1 and 2023 FHA Annual Report. Forbearance shares are from the Housing Finance Policy Center (GSE: 6.1\%) and FHA 2023 Annual Report (2M of 7.8M loans). Annual extra interest payment is computed based on three assumption. The first assumes that entry into forbearance is exogenous conditional on observables. The second and third relax this assumption using the method of \citet{oster2019}, which evaluates the sensitivity of treatment effect estimates to omitted variable bias. Specifically, the second scenario sets $R^2_{\text{max}} = 1.3\tilde{R}$ with $\delta=1$, while the third imposes the more stringent benchmark $R^2_{\text{max}} = 2\tilde{R}$ with $\delta=1$.
+\end{minipage}
+
+\vspace{1em}
+\centering
+
+\input{aggregate_saving}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+
+
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Prepayment Results: Logit Model}
+\label{tab:logit_prepayment}
+
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports estimates from a logistic regression of voluntary mortgage prepayment as the dependent variable. The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(5) report results for GSE sample, and columns (6)–(10) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. The ``Call Option'' variable is constructed using the method of \citet{deng2000mortgage} and measures the incentive to refinance. ``Credi Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. All variables after ``SATO'' are NSMO-specific factors selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}.  Standard errors are clustered at the borrower level. 
+\end{minipage}
+
+\vspace{1em}
+
+\input{forb_and_prepayment_logit}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Prepayment Results: Cox Proportional Hazard Model}
+\label{tab:cox_prepayment}
+
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table reports estimates from the cox proportional hazard regression of voluntary mortgage refinancing as the dependent variable. The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(5) report results for GSE sample, and columns (6)–(10) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. The ``Call Option'' variable is constructed using the method of \citet{deng2000mortgage} and measures the incentive to refinance. ``Credi Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. All variables after ``SATO'' are NSMO-specific factors selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}.  Standard errors are clustered at the borrower level. 
+\end{minipage}
+
+\vspace{1em}
+
+\input{forb_and_prepayment_cox}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+
+
+
+\begin{table}[htbp]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Prepayment Results: Addressing Immortal Bias}
+\label{tab:immortal}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table estimates the causal effect of forbearance on mortgage prepayment, excluding borrowers who entered forbearance after 2020Q2. The specification follows \hyperref[equation:baseline_outcome]{Equation (\ref*{equation:baseline_outcome})}. The key explanatory variable is an indicator for forbearance participation, along with a set of borrower-level and loan-level controls. The estimation is performed at the quarterly frequency using data from the National Survey of Mortgage Originations (NSMO) covering 2020–2021. The unit of observation is a loan-quarter. Columns (1)–(5) report results for GSE sample, and columns (6)–(10) report results for FHA loans. All variable definitions are provided in \hyperref[tab:description]{Table~\ref*{tab:description}}. ``Forbearance'' is an indicator that shows whether the borrower has entered forbearance program. The ``Call Option'' variable is constructed using the method of \citet{deng2000mortgage} and measures the incentive to refinance. ``Credi Score Change'' is the borrower’s VantageScore 3.0 change since origination, lagged by one quarter. ``SATO'' is rate spread above Primary Mortgage Market Survey rate (PMMS) at the origination. All variables after ``SATO'' are NSMO-specific factors selected by applying Double Selection Post-LASSO estimation proposed by \citet{belloni2014inference}. Standard errors are clustered at the borrower level. 
+
+\end{minipage}
+
+\vspace{1em}
+
+% Table body (resized to fit)
+\input{forb_and_prepayment_immortal}
+
+\end{table}
+\FloatBarrier
+\clearpage
+
+
+
+
+
+
+\begin{table}[!h]
+\captionsetup{justification=justified,singlelinecheck=false}
+\footnotesize
+\caption{:\ Calibration Parameters}
+\label{tab:calibration}
+\vspace{0.5em}
+
+\begin{minipage}{\textwidth}
+\small
+This table  Table~\ref*{tab:description}. owing \citet{deng2000mortgage}, 
+
+\end{minipage}
+
+\vspace{1em}
+
+\input{calibration}
+
+\end{table}
+\FloatBarrier
+
+\clearpage
+
+
+\section{Images}
+
+\input{event_study}
+\FloatBarrier
+\clearpage
+
+\input{event_study_after_forb}
+\FloatBarrier
+\clearpage
+
+\input{event_study_income}
+\FloatBarrier
+\clearpage
+
+\input{event_study_race}
+\FloatBarrier
+\clearpage
+
+\input{event_study_suppressed}
+\FloatBarrier
+\clearpage
+
+\input{gse_cf}
+\FloatBarrier
+\clearpage
+
+\input{oster}
+\FloatBarrier
+\clearpage
+
+% \input{DMP}
+% \FloatBarrier
+
+
+\end{document}
